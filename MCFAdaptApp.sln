@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCFAdaptApp.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCFAdaptApp.Infrastructure", "MCFAdaptApp.Infrastructure\MCFAdaptApp.Infrastructure.csproj", "{83D199AC-B6B6-4BCB-ACB7-6F2A0D90B8B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCFAdaptApp.WPF", "MCFAdaptApp.WPF\MCFAdaptApp.WPF.csproj", "{06931356-EF49-479D-8A1F-4A621AB5F104}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCFAdaptApp.Avalonia", "MCFAdaptApp.Avalonia\MCFAdaptApp.Avalonia.csproj", "{770CB157-30AA-48D7-BC34-FBB88B5FC3CE}"
 EndProject
 Global
@@ -31,10 +29,6 @@ Global
 		{83D199AC-B6B6-4BCB-ACB7-6F2A0D90B8B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83D199AC-B6B6-4BCB-ACB7-6F2A0D90B8B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83D199AC-B6B6-4BCB-ACB7-6F2A0D90B8B5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{06931356-EF49-479D-8A1F-4A621AB5F104}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{06931356-EF49-479D-8A1F-4A621AB5F104}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{06931356-EF49-479D-8A1F-4A621AB5F104}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{06931356-EF49-479D-8A1F-4A621AB5F104}.Release|Any CPU.Build.0 = Release|Any CPU
 		{770CB157-30AA-48D7-BC34-FBB88B5FC3CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{770CB157-30AA-48D7-BC34-FBB88B5FC3CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{770CB157-30AA-48D7-BC34-FBB88B5FC3CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
