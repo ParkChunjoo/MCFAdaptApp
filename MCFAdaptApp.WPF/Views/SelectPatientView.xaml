@@ -1,0 +1,460 @@
+﻿<Window x:Class="MCFAdaptApp.WPF.Views.SelectPatientView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:MCFAdaptApp.WPF.ViewModels"
+        xmlns:converters="clr-namespace:MCFAdaptApp.WPF.Converters"
+        Title="MCF-Adapt"
+        WindowStartupLocation="CenterScreen"
+        Width="1200"
+        Height="800"
+        Background="#FF1E1E1E"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        WindowState="Maximized"
+        AllowsTransparency="True"
+        BorderThickness="0">
+
+    <Window.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        
+        <!-- Tab button style -->
+        <Style x:Key="TabButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,15"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- Active tab button style -->
+        <Style x:Key="ActiveTabButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0,0,0,3"/>
+            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="Padding" Value="20,15"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        
+        <!-- Search box style -->
+        <Style x:Key="SearchBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#FF2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FF3F3F46"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- Search button style -->
+        <Style x:Key="SearchButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FF2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF3E3E42"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- Patient list header style -->
+        <Style x:Key="ListHeaderStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Background" Value="#FF2D2D30"/>
+        </Style>
+        
+        <!-- Patient list item style -->
+        <Style x:Key="ListItemStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="5"/>
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="0" Background="#FF1E1E1E">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="Auto"/> <!-- Tabs -->
+                <RowDefinition Height="*"/> <!-- Content -->
+            </Grid.RowDefinitions>
+            
+            <!-- Header with logo and user info -->
+            <Grid Grid.Row="0" Background="#FF1E1E1E">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Center text -->
+                <TextBlock Grid.Column="1" Text="Not for clinical use - evaluation use only" 
+                           Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                
+                <!-- User info and window controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,5">
+                    <Button Content="_" Foreground="White" Background="Transparent" BorderThickness="0" Margin="5,0"
+                            Click="MinimizeButton_Click"/>
+                    <Button x:Name="RestoreMaximizeButton" Content="□" Foreground="White" Background="Transparent" BorderThickness="0" Margin="5,0"
+                            Click="RestoreMaximizeButton_Click"/>
+                    <Button Content="X" Foreground="White" Background="Transparent" BorderThickness="0" Margin="5,0"
+                            Command="{Binding ExitCommand}"/>
+                </StackPanel>
+            </Grid>
+            
+            <!-- Navigation tabs -->
+            <Grid Grid.Row="1" Background="#FF1E1E1E">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Tab buttons -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,20,0">
+                    <Button Content="Patient" Style="{StaticResource ActiveTabButtonStyle}" Margin="5,0"/>
+                    <Button Content="Register" Style="{StaticResource TabButtonStyle}" Margin="5,0"/>
+                    <Button Content="Contour" Style="{StaticResource TabButtonStyle}" Margin="5,0"/>
+                    <Button Content="Plan" Style="{StaticResource TabButtonStyle}" Margin="5,0"/>
+                    <Button Content="Review" Style="{StaticResource TabButtonStyle}" Margin="5,0"/>
+                </StackPanel>
+            </Grid>
+            
+            <!-- Main content -->
+            <Grid Grid.Row="2" x:Name="MainContent">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Left panel - Patient list -->
+                <Grid Grid.Column="0" Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Search -->
+                        <RowDefinition Height="Auto"/> <!-- Tabs -->
+                        <RowDefinition Height="*"/> <!-- Patient list -->
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Search bar -->
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBox Grid.Column="0" Style="{StaticResource SearchBoxStyle}" Margin="0,0,5,0"/>
+                        <Button Grid.Column="1" Content="Search" Style="{StaticResource SearchButtonStyle}"/>
+                    </Grid>
+                    
+                    <!-- Patient list tabs -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Border x:Name="RecentPatientsBorder" Grid.Column="0" Background="#FF3F3F46" BorderThickness="1,1,0,1" BorderBrush="#FF2D2D30">
+                            <Button Command="{Binding ShowRecentPatientsCommand}" Background="Transparent" BorderThickness="0" Click="RecentPatientsButton_Click">
+                                <TextBlock Text="Recent patients" Foreground="White" FontSize="16" 
+                                       HorizontalAlignment="Center" Padding="10,8"/>
+                            </Button>
+                        </Border>
+                        
+                        <Border x:Name="AllPatientsBorder" Grid.Column="1" Background="#FF2D2D30" BorderThickness="0,1,1,1" BorderBrush="#FF2D2D30">
+                            <Button Command="{Binding ShowAllPatientsCommand}" Background="Transparent" BorderThickness="0" Click="AllPatientsButton_Click">
+                                <TextBlock Text="All patients" Foreground="White" FontSize="16" 
+                                       HorizontalAlignment="Center" Padding="10,8"/>
+                            </Button>
+                        </Border>
+                    </Grid>
+                    
+                    <!-- Patient list - DataGrid -->
+                    <DataGrid Grid.Row="2" 
+                              ItemsSource="{Binding Patients}" 
+                              SelectedItem="{Binding SelectedPatient, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              AutoGenerateColumns="False"
+                              Background="#FF2D2D30"
+                              BorderThickness="0"
+                              GridLinesVisibility="None"
+                              HeadersVisibility="Column"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              CanUserReorderColumns="False"
+                              CanUserResizeRows="False"
+                              CanUserSortColumns="True"
+                              IsReadOnly="True"
+                              RowHeaderWidth="0"
+                              SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto"
+                              SelectionChanged="DataGrid_SelectionChanged">
+                        
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#FF2D2D30"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="FontSize" Value="18"/>
+                                <Setter Property="Padding" Value="12,10"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                <Setter Property="Height" Value="50"/>
+                            </Style>
+                            
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Background" Value="#FF2D2D30"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                <Setter Property="Height" Value="55"/>
+                                <EventSetter Event="PreviewMouseLeftButtonDown" Handler="DataGridRow_PreviewMouseLeftButtonDown"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#FF007ACC"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#FF3F3F46"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                            
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="12,8"/>
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+                        
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding PatientId}" Width="1*"/>
+                            <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="1*"/>
+                            <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="1*"/>
+                            <DataGridTextColumn Header="Latest CBCT Scan Time" Binding="{Binding LastCBCTScanTime, StringFormat=dd MMM yyyy HH:mm}" Width="1*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                    <!-- 환자 목록 아래에 버튼 추가 -->
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Select As Reference Plan" 
+                                Command="{Binding SelectAsReferencePlanCommand}" 
+                                Padding="10,5" 
+                                Margin="0,0,10,0"
+                                Background="#007ACC"
+                                Foreground="White"
+                                BorderThickness="0"/>
+                    </StackPanel>
+                </Grid>
+                
+                <!-- Middle panel - AnatomyModel -->
+                <Grid Grid.Column="1" Background="#FF1E1E1E">
+                    <!-- 환자가 선택되었을 때 표시할 내용 -->
+                    <Grid Visibility="{Binding SelectedPatient, Converter={StaticResource NullToVisibilityConverter}}"
+                          Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- 환자 정보 헤더 -->
+                            <RowDefinition Height="Auto"/> <!-- 환자 정보 -->
+                            <RowDefinition Height="Auto"/> <!-- 계획 목록 헤더 -->
+                            <RowDefinition Height="*"/> <!-- 계획 목록 -->
+                        </Grid.RowDefinitions>
+                        
+                        <!-- 환자 정보 헤더 -->
+                        <Border Grid.Row="0" Background="#FF1E1E1E" Padding="10" Margin="0,0,0,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" Text="SELECTED PATIENT" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- 환자 정보 -->
+                        <Border Grid.Row="1" Background="#FF2D2D30" Padding="10" Margin="0,0,0,20">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- 환자 이니셜 -->
+                                <Border Grid.Column="0" Width="80" Height="80" Background="#FF3F3F46" Margin="0,0,10,0">
+                                    <TextBlock x:Name="PatientInitials" 
+                                               Foreground="White" FontSize="32" FontWeight="Bold" 
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                
+                                <!-- 환자 상세 정보 -->
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,0,0,5">
+                                        <Run Text="{Binding SelectedPatient.LastName}" />
+                                        <Run Text=" " />
+                                        <Run Text="{Binding SelectedPatient.FirstName}" />
+                                    </TextBlock>
+                                    <TextBlock Foreground="#AAAAAA" FontSize="14">
+                                        <Run Text="{Binding SelectedPatient.DateOfBirth, StringFormat=dd MMM yyyy}" />
+                                        <Run Text=" • ID: " />
+                                        <Run Text="{Binding SelectedPatient.PatientId}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- 계획 목록 헤더 -->
+                        <Grid Grid.Row="2" Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" Text="NAME" Foreground="#AAAAAA" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Grid.Column="1" Text="STATUS" Foreground="#AAAAAA" FontSize="18" FontWeight="Bold" Margin="10,0"/>
+                            <TextBlock Grid.Column="2" Text="DATE MODIFIED" Foreground="#AAAAAA" FontSize="18" FontWeight="Bold"/>
+                        </Grid>
+                        
+                        <!-- 계획 목록 -->
+                        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding SelectedPatient.AnatomyModels}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,0,15">
+                                            <!-- AnatomyModel 항목 -->
+                                            <Grid Margin="0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="18" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding Status}" Foreground="White" FontSize="16" Margin="10,0" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding ModifiedDate, StringFormat=dd MMM yyyy}" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
+                                            </Grid>
+                                            
+                                            <!-- ReferencePlan 항목들 -->
+                                            <ItemsControl ItemsSource="{Binding ReferencePlans}" Margin="20,5,0,15">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,8,0,8" Background="#FF252526" CornerRadius="4" BorderThickness="1" BorderBrush="#FF3F3F46">
+                                                            <StackPanel Margin="10,8">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    
+                                                                    <!-- 버튼을 텍스트로 변경 -->
+                                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="8,5">
+                                                                        <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" Foreground="White" FontSize="18" Margin="0,0,8,0"/>
+                                                                        <TextBlock Text="{Binding Name}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                    <TextBlock Grid.Column="1" Text="{Binding Status}" Foreground="White" FontSize="16" Margin="10,0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="2" Text="{Binding ModifiedDate, StringFormat=dd MMM yyyy}" Foreground="White" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                                
+                                                                <!-- 설명 텍스트 - 다음 줄에 표시 -->
+                                                                <TextBlock Text="{Binding Description}" 
+                                                                           Foreground="#AAAAAA" FontSize="16" Margin="30,8,0,0"
+                                                                           TextWrapping="Wrap"/>
+                                                                
+                                                                <!-- Select As Reference Plan 버튼 추가 - 색상 변경 -->
+                                                                <Button Content="Select As Reference Plan" 
+                                                                        Background="#FF007ACC" Foreground="White" 
+                                                                        BorderThickness="0" Padding="15,10" Margin="0,10,0,0"
+                                                                        HorizontalAlignment="Right" FontSize="16" FontWeight="Bold">
+                                                                    <Button.Resources>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="CornerRadius" Value="4"/>
+                                                                        </Style>
+                                                                    </Button.Resources>
+                                                                    <Button.Style>
+                                                                        <Style TargetType="Button">
+                                                                            <Setter Property="Background" Value="#FF007ACC"/>
+                                                                            <Setter Property="Foreground" Value="White"/>
+                                                                            <Setter Property="BorderThickness" Value="0"/>
+                                                                            <Style.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter Property="Background" Value="#FF1C97EA"/>
+                                                                                </Trigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Button.Style>
+                                                                </Button>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+                
+                <!-- Right panel - Logo -->
+                <Grid Grid.Column="2" Background="#FF1E1E1E">
+                    <!-- 항상 표시되는 로고 -->
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Image Source="/Resources/Images/OncosofLogo.png" Width="200" Height="80" Margin="0,0,0,20"/>
+                        <TextBlock Text="Import DICOM data or select a patient" 
+                                   Foreground="#AAAAAA" FontSize="16" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+            
+            <!-- Loading overlay -->
+            <Grid Grid.RowSpan="3"
+                  Background="#80000000"
+                  Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                    <TextBlock Text="Loading..."
+                       Foreground="White"
+                               FontSize="16"
+                               Margin="0,0,0,10"
+                               HorizontalAlignment="Center"/>
+                    <ProgressBar IsIndeterminate="True"
+                                 Width="150"
+                                 Height="2"/>
+        </StackPanel>
+    </Grid>
+        </Grid>
+    </Border>
+</Window>

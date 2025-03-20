@@ -1,0 +1,197 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MCFAdaptApp.Avalonia.ViewModels"
+        xmlns:converters="using:MCFAdaptApp.Avalonia.Converters"
+        x:Class="MCFAdaptApp.Avalonia.Views.LoginView"
+        x:DataType="vm:LoginViewModel"
+        Title="Real Time Adaptive"
+        Width="800"
+        Height="600"
+        Background="#FF1E1E1E"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        CanResize="False">
+
+    <Window.Styles>
+        <Style Selector="Control.input">
+            <Setter Property="Margin" Value="0,5,0,10" />
+            <Setter Property="Height" Value="35" />
+        </Style>
+        
+        <Style Selector="TextBlock.label">
+            <Setter Property="Margin" Value="0,5,0,2" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        
+        <Style Selector="Button.custom">
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Padding" Value="15,8" />
+            <Setter Property="Background" Value="#FF3F3F46" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="MinWidth" Value="100" />
+            <Setter Property="Height" Value="35" />
+        </Style>
+        
+        <Style Selector="Button.custom:pointerover">
+            <Setter Property="Background" Value="#FF007ACC" />
+        </Style>
+        
+        <Style Selector="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+    </Window.Styles>
+
+    <Window.Styles>
+        <!-- Add styles here if needed -->
+    </Window.Styles>
+    
+    <Window.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
+    <Border CornerRadius="8" Background="#FF1E1E1E" Margin="10" BoxShadow="0 2 15 0 #000000">
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header with Logo -->
+            <StackPanel Grid.Row="0" Margin="0,40,0,20" HorizontalAlignment="Center">
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                    <Image Source="avares://MCFAdaptApp.Avalonia/Resources/Images/OncosofLogo.png" 
+                           Width="200" 
+                           Height="80" 
+                           Margin="0,0,0,10"/>
+                    <TextBlock Text="Real Time Adaptive"
+                               Foreground="White"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,10"/>
+                </StackPanel>
+                <TextBlock Text="Username:"
+                           Foreground="White"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,20,0,5"/>
+                <TextBox Text="{Binding UserId}"
+                         Height="45"
+                         Background="#FF2D2D30"
+                         BorderThickness="0"
+                         Foreground="White"
+                         Padding="10,8"
+                         FontSize="16"
+                         Width="450"
+                         HorizontalContentAlignment="Center"
+                         Margin="0,0,0,20"/>
+
+                <!-- Password -->
+                <TextBlock Text="Password:"
+                           Foreground="White"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,30" Width="450">
+                    <TextBox x:Name="PasswordBox"
+                             Height="45"
+                             Background="#FF2D2D30"
+                             BorderThickness="0"
+                             Foreground="White"
+                             Padding="10,8"
+                             FontSize="16"
+                             HorizontalContentAlignment="Center"
+                             PasswordChar="•"
+                             IsVisible="{Binding !IsPasswordVisible}"
+                             Text="{Binding Password, Mode=TwoWay}"/>
+                    <TextBox x:Name="PasswordVisibleBox"
+                             Height="45"
+                             Background="#FF2D2D30"
+                             BorderThickness="0"
+                             Foreground="White"
+                             Padding="10,8"
+                             FontSize="16"
+                             HorizontalContentAlignment="Center"
+                             IsVisible="{Binding IsPasswordVisible}"
+                             Text="{Binding Password, Mode=TwoWay}"/>
+                    <Button x:Name="TogglePasswordButton"
+                            Width="35"
+                            Height="35"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Margin="0,0,5,0"
+                            ZIndex="1"
+                            Command="{Binding TogglePasswordVisibilityCommand}">
+                        <Path x:Name="EyeIcon"
+                              Data="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z"
+                              Fill="White"
+                              Stretch="Uniform"
+                              Width="20"
+                              Height="20"/>
+                    </Button>
+                </Grid>
+
+                <!-- Error message -->
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#FFFF6347"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,10"
+                           Width="450"
+                           IsVisible="{Binding HasError, Mode=OneWay}"/>
+
+                <!-- Sign in button -->
+                <Button Content="Sign in"
+                        Command="{Binding LoginCommand}"
+                        Height="45"
+                        Background="#2196F3"
+                        Foreground="White"
+                        BorderThickness="0"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Margin="0,0,0,10"
+                        Width="450"
+                        HorizontalContentAlignment="Center"
+                        HorizontalAlignment="Center"/>
+
+                <!-- Exit button -->
+                <Button Content="Exit application"
+                        Command="{Binding ExitCommand}"
+                        Height="45"
+                        Background="Transparent"
+                        Foreground="#2196F3"
+                        BorderThickness="1"
+                        BorderBrush="#2196F3"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Width="450"
+                        HorizontalContentAlignment="Center"
+                        HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Loading overlay -->
+            <Grid Grid.RowSpan="3"
+                  Background="#80000000"
+                  IsVisible="{Binding IsLoading, Mode=OneWay}">
+                <StackPanel HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Signing in..."
+                               Foreground="White"
+                               FontSize="16"
+                               Margin="0,0,0,10"
+                               HorizontalAlignment="Center"/>
+                    <ProgressBar IsIndeterminate="True"
+                                 Width="150"
+                                 Height="2"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
