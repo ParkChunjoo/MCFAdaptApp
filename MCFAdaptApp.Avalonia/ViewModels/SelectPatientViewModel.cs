@@ -588,13 +588,18 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 IsLoading = true;
                 ClearError();
                 
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Preparing to navigate to Register tab for patient: {SelectedPatient.PatientId}");
+                
+                // Add delay to show progress bar with messages
+                await Task.Delay(800); // Increased delay to make progress bar visible
+                
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Navigating to Register tab for patient: {SelectedPatient.PatientId}");
                 
                 // Register 탭으로 이동하는 이벤트 발생
                 OnNavigateToRegister(SelectedPatient.PatientId);
                 
-                // 비동기 작업 추가
-                await Task.Delay(100); // 최소한의 비동기 작업 추가
+                // Add additional delay after navigation
+                await Task.Delay(500);
                 
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Navigation to Register tab completed");
             }
@@ -605,6 +610,8 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             }
             finally
             {
+                // Keep IsLoading true for a moment after navigation to ensure progress bar is visible
+                await Task.Delay(200);
                 IsLoading = false;
             }
         }
