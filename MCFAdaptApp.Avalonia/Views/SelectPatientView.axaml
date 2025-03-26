@@ -1,18 +1,13 @@
-<Window xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MCFAdaptApp.Avalonia.ViewModels"
         xmlns:converters="using:MCFAdaptApp.Avalonia.Converters"
         x:Class="MCFAdaptApp.Avalonia.Views.SelectPatientView"
-        Title="MCF-Adapt"
         Width="1200"
         Height="800"
-        Background="#FF1E1E1E"
-        WindowStartupLocation="CenterScreen"
-        SystemDecorations="None"
-        CanResize="True"
-        WindowState="Maximized">
+        Background="#FF1E1E1E">
 
-    <Window.Styles>
+    <UserControl.Styles>
         <!-- Tab button style -->
         <Style Selector="Button.tabButton">
             <Setter Property="Background" Value="Transparent"/>
@@ -87,12 +82,12 @@
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Padding" Value="5"/>
         </Style>
-    </Window.Styles>
+    </UserControl.Styles>
     
-    <Window.Resources>
+    <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
-    </Window.Resources>
+    </UserControl.Resources>
 
     <Border Background="#FF1E1E1E">
         <Grid>
@@ -428,7 +423,7 @@
                                                                         HorizontalAlignment="Right" FontSize="13" FontWeight="SemiBold" FontFamily="Segoe UI"
                                                                         HorizontalContentAlignment="Center"
                                                                         Classes="selectPlanButton"
-                                                                        Command="{Binding DataContext.SelectAsReferencePlanCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        Command="{Binding DataContext.SelectAsReferencePlanCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                         CommandParameter="{Binding}">
                                                                 </Button>
                                                             </StackPanel>
@@ -475,4 +470,4 @@
             </Grid>
         </Grid>
     </Border>
-</Window>
+</UserControl>

@@ -14,27 +14,18 @@ using Avalonia.Input;
 
 namespace MCFAdaptApp.Avalonia.Views
 {
-    public partial class SelectPatientView : Window
+    public partial class SelectPatientView : UserControl
     {
         private Button? _recentPatientsButton;
         private Button? _allPatientsButton;
         private Border? _recentPatientsBorder;
         private Border? _allPatientsBorder;
         private Button? _registerTabButton;
-        private Button? _minimizeButton;
-        private Button? _restoreMaximizeButton;
-        private Button? _closeButton;
         private DataGrid? _patientsDataGrid;
-        private Grid? _headerBar;
-        private Point _startPoint;
-        private bool _isPointerPressed;
 
         public SelectPatientView()
         {
             InitializeComponent();
-#if DEBUG
-            this.AttachDevTools();
-#endif
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] SelectPatientView initialized");
 
             // Get references to UI elements
@@ -43,28 +34,13 @@ namespace MCFAdaptApp.Avalonia.Views
             _recentPatientsBorder = this.FindControl<Border>("RecentPatientsBorder");
             _allPatientsBorder = this.FindControl<Border>("AllPatientsBorder");
             _registerTabButton = this.FindControl<Button>("RegisterTabButton");
-            _minimizeButton = this.FindControl<Button>("MinimizeButton");
-            _restoreMaximizeButton = this.FindControl<Button>("RestoreMaximizeButton");
-            _closeButton = this.FindControl<Button>("CloseButton");
             _patientsDataGrid = this.FindControl<DataGrid>("PatientsDataGrid");
-            _headerBar = this.FindControl<Grid>("HeaderBar");
 
             // Attach event handlers
             if (_recentPatientsButton != null) _recentPatientsButton.Click += RecentPatientsButton_Click;
             if (_allPatientsButton != null) _allPatientsButton.Click += AllPatientsButton_Click;
             if (_registerTabButton != null) _registerTabButton.Click += RegisterTabButton_Click;
-            if (_minimizeButton != null) _minimizeButton.Click += MinimizeButton_Click;
-            if (_restoreMaximizeButton != null) _restoreMaximizeButton.Click += RestoreMaximizeButton_Click;
-            if (_closeButton != null) _closeButton.Click += CloseButton_Click;
             if (_patientsDataGrid != null) _patientsDataGrid.SelectionChanged += DataGrid_SelectionChanged;
-
-            // Add window dragging functionality
-            if (_headerBar != null)
-            {
-                _headerBar.PointerPressed += HeaderBar_PointerPressed;
-                _headerBar.PointerReleased += HeaderBar_PointerReleased;
-                _headerBar.PointerMoved += HeaderBar_PointerMoved;
-            }
 
             // Set DataContext
             if (global::Avalonia.Application.Current is App app)
@@ -131,28 +107,7 @@ namespace MCFAdaptApp.Avalonia.Views
             }
         }
 
-        private void MinimizeButton_Click(object? sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
 
-        private void RestoreMaximizeButton_Click(object? sender, RoutedEventArgs e)
-        {
-            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-        }
-
-        private void CloseButton_Click(object? sender, RoutedEventArgs e)
-        {
-            // Close the window
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Close button clicked, closing application");
-            this.Close();
-
-            // If needed, can also exit the application entirely
-            if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.Shutdown();
-            }
-        }
 
         private void DataGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
@@ -249,36 +204,6 @@ namespace MCFAdaptApp.Avalonia.Views
             }
         }
 
-        // Window dragging functionality
-        private void HeaderBar_PointerPressed(object? sender, PointerPressedEventArgs e)
-        {
-            if (this.WindowState == WindowState.Maximized)
-                return;
 
-            _isPointerPressed = true;
-            _startPoint = e.GetPosition(this);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] HeaderBar_PointerPressed at {_startPoint}");
-        }
-
-        private void HeaderBar_PointerReleased(object? sender, PointerReleasedEventArgs e)
-        {
-            _isPointerPressed = false;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] HeaderBar_PointerReleased");
-        }
-
-        private void HeaderBar_PointerMoved(object? sender, PointerEventArgs e)
-        {
-            if (_isPointerPressed && this.WindowState != WindowState.Maximized)
-            {
-                var currentPoint = e.GetPosition(this);
-                var offset = currentPoint - _startPoint;
-
-                if (offset.X != 0 || offset.Y != 0)
-                {
-                    Position = new PixelPoint(Position.X + (int)offset.X, Position.Y + (int)offset.Y);
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Window moved to {Position}");
-                }
-            }
-        }
     }
 }
