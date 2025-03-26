@@ -30,6 +30,8 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private bool _hasError;
         private string _errorMessage = string.Empty;
         private readonly ConcurrentDictionary<string, ObservableCollection<AnatomyModel>> _anatomyModelCache = new();
+        private bool _showLoadingOverlay;
+        private string _loadingStatusText = "Loading...";
 
         #endregion
 
@@ -158,6 +160,37 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         public ICommand SelectAsReferencePlanCommand { get; private set; }
 
         /// <summary>
+        /// Command to select a reference plan and navigate to the Register tab
+        /// </summary>
+        public ICommand SelectReferencePlanCommand { get; private set; }
+
+        /// <summary>
+        /// Reference to the loading overlay in the view
+        /// </summary>
+        public bool ShowLoadingOverlay
+        {
+            get => _showLoadingOverlay;
+            set
+            {
+                _showLoadingOverlay = value;
+                OnPropertyChanged();
+            }
+        }
+        
+        /// <summary>
+        /// Text displayed in the loading overlay
+        /// </summary>
+        public string LoadingStatusText
+        {
+            get => _loadingStatusText;
+            set
+            {
+                _loadingStatusText = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
         /// Register 탭으로 이동 이벤트
         /// </summary>
         public event EventHandler<string>? NavigateToRegister;
@@ -183,6 +216,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             ShowRecentPatientsCommand = new RelayCommand(_ => ShowRecentPatients());
             ShowAllPatientsCommand = new RelayCommand(_ => ShowAllPatients());
             SelectAsReferencePlanCommand = new AsyncRelayCommand(SelectAsReferencePlanAsync, CanSelectAsReferencePlan);
+            SelectReferencePlanCommand = new AsyncRelayCommand<ReferencePlan>(SelectReferencePlanAsync);
             
             // Initialize properties
             ErrorMessage = string.Empty;
@@ -624,6 +658,63 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         {
             ErrorMessage = string.Empty;
             HasError = false;
+        }
+
+        /// <summary>
+        /// Processes a reference plan selection and navigates to the Register tab
+        /// </summary>
+        /// <param name="referencePlan">The selected reference plan</param>
+        private async Task SelectReferencePlanAsync(ReferencePlan? referencePlan)
+        {
+            if (referencePlan == null)
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] SelectReferencePlanAsync: ReferencePlan is null");
+                ErrorMessage = "No reference plan selected.";
+                return;
+            }
+
+            try
+            {
+                // Update UI to show loading
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Reference plan selected: {referencePlan.Name}");
+                ShowLoadingOverlay = true;
+                ClearError();
+                
+                // First phase - Loading CBCT projections
+                LoadingStatusText = "Loading CBCT Projections...";
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading CBCT Projections...");
+                await Task.Delay(2000); // Simulate work for 2 seconds
+                
+                // Second phase - Loading reference plan data
+                LoadingStatusText = "Loading Reference Plan Data...";
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading Reference Plan Data...");
+                await Task.Delay(2000); // Simulate work for 2 seconds
+                
+                // Hide loading overlay
+                ShowLoadingOverlay = false;
+                
+                // Store selected reference plan if needed
+                // This could be used in the Register tab
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading complete, storing reference plan: {referencePlan.Name}");
+                
+                // Finally, navigate to the Register tab (ensure patient is selected)
+                if (SelectedPatient != null)
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Triggering navigation to Register tab for patient: {SelectedPatient.PatientId}");
+                    OnNavigateToRegister(SelectedPatient.PatientId);
+                }
+                else
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] WARNING: Cannot navigate - SelectedPatient is null");
+                    ErrorMessage = "No patient is selected. Please select a patient.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error processing reference plan selection: {ex.Message}");
+                ErrorMessage = $"Error processing reference plan: {ex.Message}";
+                ShowLoadingOverlay = false;
+            }
         }
 
         #endregion
