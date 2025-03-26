@@ -35,14 +35,13 @@ namespace MCFAdaptApp.Avalonia
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Application starting up");
 
-                var selectPatientView = _serviceProvider.GetService<SelectPatientView>() ?? throw new InvalidOperationException("Failed to resolve SelectPatientView from service provider");
-                
                 var mainWindow = new MainWindow();
                 desktop.MainWindow = mainWindow;
                 
-                if (selectPatientView.DataContext is ViewModels.SelectPatientViewModel viewModel)
+                var selectPatientViewModel = _serviceProvider.GetService<ViewModels.SelectPatientViewModel>();
+                if (selectPatientViewModel != null)
                 {
-                    viewModel.NavigateToRegister += (sender, patientId) =>
+                    selectPatientViewModel.NavigateToRegister += (sender, patientId) =>
                     {
                         mainWindow.SelectRegisterTab();
                         
