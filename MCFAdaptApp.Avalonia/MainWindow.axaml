@@ -14,7 +14,7 @@
                 <views:SelectPatientView />
             </TabItem>
             <TabItem Header="Register">
-                <views:RegisterView />
+                <views:RegisterView Name="RegisterView" />
             </TabItem>
             <TabItem Header="Contour">
                 <TextBlock Text="Contour View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" />

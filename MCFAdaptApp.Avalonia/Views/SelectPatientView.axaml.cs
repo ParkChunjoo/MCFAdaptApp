@@ -36,7 +36,7 @@ namespace MCFAdaptApp.Avalonia.Views
             this.AttachDevTools();
 #endif
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] SelectPatientView initialized");
-            
+
             // Get references to UI elements
             _recentPatientsButton = this.FindControl<Button>("RecentPatientsButton");
             _allPatientsButton = this.FindControl<Button>("AllPatientsButton");
@@ -48,7 +48,7 @@ namespace MCFAdaptApp.Avalonia.Views
             _closeButton = this.FindControl<Button>("CloseButton");
             _patientsDataGrid = this.FindControl<DataGrid>("PatientsDataGrid");
             _headerBar = this.FindControl<Grid>("HeaderBar");
-            
+
             // Attach event handlers
             if (_recentPatientsButton != null) _recentPatientsButton.Click += RecentPatientsButton_Click;
             if (_allPatientsButton != null) _allPatientsButton.Click += AllPatientsButton_Click;
@@ -57,7 +57,7 @@ namespace MCFAdaptApp.Avalonia.Views
             if (_restoreMaximizeButton != null) _restoreMaximizeButton.Click += RestoreMaximizeButton_Click;
             if (_closeButton != null) _closeButton.Click += CloseButton_Click;
             if (_patientsDataGrid != null) _patientsDataGrid.SelectionChanged += DataGrid_SelectionChanged;
-            
+
             // Add window dragging functionality
             if (_headerBar != null)
             {
@@ -65,7 +65,7 @@ namespace MCFAdaptApp.Avalonia.Views
                 _headerBar.PointerReleased += HeaderBar_PointerReleased;
                 _headerBar.PointerMoved += HeaderBar_PointerMoved;
             }
-            
+
             // Set DataContext
             if (global::Avalonia.Application.Current is App app)
             {
@@ -75,7 +75,7 @@ namespace MCFAdaptApp.Avalonia.Views
             {
                 DataContext = new SelectPatientViewModel();
             }
-            
+
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] SelectPatientView DataContext set to SelectPatientViewModel");
         }
 
@@ -89,77 +89,71 @@ namespace MCFAdaptApp.Avalonia.Views
         {
             AvaloniaXamlLoader.Load(this);
         }
-        
+
         private void RecentPatientsButton_Click(object? sender, RoutedEventArgs e)
         {
             if (_recentPatientsBorder != null) _recentPatientsBorder.Background = new SolidColorBrush(Color.Parse("#FF3F3F46"));
             if (_allPatientsBorder != null) _allPatientsBorder.Background = new SolidColorBrush(Color.Parse("#FF2D2D30"));
         }
-        
+
         private void AllPatientsButton_Click(object? sender, RoutedEventArgs e)
         {
             if (_recentPatientsBorder != null) _recentPatientsBorder.Background = new SolidColorBrush(Color.Parse("#FF2D2D30"));
             if (_allPatientsBorder != null) _allPatientsBorder.Background = new SolidColorBrush(Color.Parse("#FF3F3F46"));
         }
-        
+
         private void RegisterTabButton_Click(object? sender, RoutedEventArgs e)
         {
-            // Navigate to RegisterView
             if (DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
             {
-                RegisterView? registerView = null;
-                
-                if (global::Avalonia.Application.Current is App app)
+                if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
                 {
-                    registerView = app.Services.GetService(typeof(RegisterView)) as RegisterView;
-                }
-                
-                if (registerView != null)
-                {
-                    if (registerView.DataContext is RegisterViewModel registerViewModel)
+                    var mainWindow = desktop.MainWindow as MainWindow;
+                    if (mainWindow != null)
                     {
-                        registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
-                    }
-                    
-                    if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-                    {
-                        // Create a new window to host the RegisterView
-                        var window = new Window
+                        var tabControl = mainWindow.FindControl<TabControl>("MainTabControl");
+                        if (tabControl != null)
                         {
-                            Content = registerView,
-                            Title = "Register",
-                            Width = 800,
-                            Height = 600
-                        };
-                        desktop.MainWindow = window;
+                            tabControl.SelectedIndex = 1;
+                            
+                            var registerTab = tabControl.Items[1] as TabItem;
+                            if (registerTab?.Content is RegisterView registerView)
+                            {
+                                if (registerView.DataContext is RegisterViewModel registerViewModel)
+                                {
+                                    registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
+                                    _ = registerViewModel.InitializeAsync(viewModel.SelectedPatient.PatientId);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        
+
         private void MinimizeButton_Click(object? sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
         }
-        
+
         private void RestoreMaximizeButton_Click(object? sender, RoutedEventArgs e)
         {
             this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
         }
-        
+
         private void CloseButton_Click(object? sender, RoutedEventArgs e)
         {
             // Close the window
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Close button clicked, closing application");
             this.Close();
-            
+
             // If needed, can also exit the application entirely
             if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.Shutdown();
             }
         }
-        
+
         private void DataGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             try
@@ -167,24 +161,24 @@ namespace MCFAdaptApp.Avalonia.Views
                 // Only process if we have added items (new selection)
                 if (e.AddedItems == null || e.AddedItems.Count == 0)
                     return;
-                
+
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] DataGrid_SelectionChanged triggered");
-                
+
                 var patient = e.AddedItems[0] as MCFAdaptApp.Domain.Models.Patient;
                 if (patient == null || !(DataContext is SelectPatientViewModel viewModel))
                     return;
-                
+
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Patient selected in DataGrid: {patient.PatientId}");
-                
+
                 // Update patient initials immediately for responsive UI
                 UpdatePatientInitials(patient);
-                
+
                 // Set the selected patient in view model - this will trigger the SelectedPatient setter
                 // which now immediately sets the AnatomyModels from cache
                 viewModel.SelectedPatient = patient;
-                
+
                 // Force immediate UI update on the UI thread with highest priority
-                Dispatcher.UIThread.Post(() => 
+                Dispatcher.UIThread.Post(() =>
                 {
                     // Explicitly notify UI that these properties changed
                     viewModel.OnPropertyChanged("SelectedPatient");
@@ -195,7 +189,7 @@ namespace MCFAdaptApp.Avalonia.Views
                         viewModel.OnPropertyChanged("SelectedPatient.AnatomyModels");
                     }
                 }, DispatcherPriority.Render);
-                
+
                 // Load anatomy models in background without awaiting
                 _ = Task.Run(async () =>
                 {
@@ -203,9 +197,9 @@ namespace MCFAdaptApp.Avalonia.Views
                     {
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading anatomy models in background");
                         await viewModel.LoadAnatomyModelsAsync(patient.PatientId);
-                        
+
                         // Force another UI update after background loading is complete
-                        Dispatcher.UIThread.Post(() => 
+                        Dispatcher.UIThread.Post(() =>
                         {
                             viewModel.OnPropertyChanged("SelectedPatient");
                             if (patient.AnatomyModels != null)
@@ -226,7 +220,7 @@ namespace MCFAdaptApp.Avalonia.Views
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] ERROR in DataGrid_SelectionChanged: {ex.Message}");
             }
         }
-        
+
         private void UpdatePatientInitials(MCFAdaptApp.Domain.Models.Patient patient)
         {
             var initialsTextBlock = this.FindControl<TextBlock>("PatientInitials");
@@ -234,51 +228,51 @@ namespace MCFAdaptApp.Avalonia.Views
             {
                 string firstName = patient.FirstName ?? string.Empty;
                 string lastName = patient.LastName ?? string.Empty;
-                
+
                 string initials = string.Empty;
                 if (!string.IsNullOrEmpty(firstName) && firstName.Length > 0)
                 {
                     initials += firstName[0];
                 }
-                
+
                 if (!string.IsNullOrEmpty(lastName) && lastName.Length > 0)
                 {
                     initials += lastName[0];
                 }
-                
+
                 // Update UI immediately on UI thread
-                Dispatcher.UIThread.Post(() => 
+                Dispatcher.UIThread.Post(() =>
                 {
                     initialsTextBlock.Text = initials.ToUpper();
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Updated patient initials to: {initials.ToUpper()}");
                 }, DispatcherPriority.Render);
             }
         }
-        
+
         // Window dragging functionality
         private void HeaderBar_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (this.WindowState == WindowState.Maximized)
                 return;
-                
+
             _isPointerPressed = true;
             _startPoint = e.GetPosition(this);
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] HeaderBar_PointerPressed at {_startPoint}");
         }
-        
+
         private void HeaderBar_PointerReleased(object? sender, PointerReleasedEventArgs e)
         {
             _isPointerPressed = false;
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] HeaderBar_PointerReleased");
         }
-        
+
         private void HeaderBar_PointerMoved(object? sender, PointerEventArgs e)
         {
             if (_isPointerPressed && this.WindowState != WindowState.Maximized)
             {
                 var currentPoint = e.GetPosition(this);
                 var offset = currentPoint - _startPoint;
-                
+
                 if (offset.X != 0 || offset.Y != 0)
                 {
                     Position = new PixelPoint(Position.X + (int)offset.X, Position.Y + (int)offset.Y);

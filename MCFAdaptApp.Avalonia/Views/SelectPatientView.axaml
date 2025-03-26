@@ -427,7 +427,9 @@
                                                                         BorderThickness="0" Padding="12,8" Margin="0,10,0,0"
                                                                         HorizontalAlignment="Right" FontSize="13" FontWeight="SemiBold" FontFamily="Segoe UI"
                                                                         HorizontalContentAlignment="Center"
-                                                                        Classes="selectPlanButton">
+                                                                        Classes="selectPlanButton"
+                                                                        Command="{Binding DataContext.SelectAsReferencePlanCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        CommandParameter="{Binding}">
                                                                 </Button>
                                                             </StackPanel>
                                                         </Border>
@@ -461,7 +463,7 @@
                   IsVisible="{Binding IsLoading}">
                 <StackPanel HorizontalAlignment="Center"
                     VerticalAlignment="Center">
-                    <TextBlock Text="Loading..."
+                    <TextBlock Text="{Binding StatusMessage}"
                        Foreground="White"
                                FontSize="16"
                                Margin="0,0,0,10"
