@@ -5,7 +5,7 @@
         xmlns:views="using:MCFAdaptApp.Avalonia.Views"
         mc:Ignorable="d"
         x:Class="MCFAdaptApp.Avalonia.MainWindow"
-        Title="MCF Adapt App" Height="768" Width="1024"
+        Title="MCF Adapt App" Height="820" Width="1024"
         WindowStartupLocation="CenterScreen">
     
     <Grid>
