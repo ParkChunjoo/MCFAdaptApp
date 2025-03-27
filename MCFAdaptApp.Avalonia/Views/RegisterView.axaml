@@ -39,11 +39,11 @@
                          HorizontalAlignment="Stretch">
                     <ListBox.Styles>
                         <Style Selector="ScrollBar">
-                            <Setter Property="Width" Value="3"/>
+                            <Setter Property="Width" Value="10"/>
                             <Setter Property="Margin" Value="1,0,0,0"/>
                         </Style>
                         <Style Selector="ScrollBar:horizontal">
-                            <Setter Property="Height" Value="3"/>
+                            <Setter Property="Height" Value="10"/>
                         </Style>
                         <Style Selector="ScrollBar /template/ Thumb">
                             <Setter Property="Background" Value="White"/>
@@ -286,11 +286,6 @@
                                  VerticalAlignment="Center"
                                  Foreground="White"
                                  FontSize="12"/>
-                        <!-- Purple Circle -->
-                        <Ellipse Width="14" Height="14"
-                                Fill="#9370DB"
-                                Margin="8,0,0,0"
-                                VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <!-- Slider with no purple circle -->
