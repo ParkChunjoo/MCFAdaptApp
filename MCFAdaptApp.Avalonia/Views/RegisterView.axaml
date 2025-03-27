@@ -7,94 +7,382 @@
              x:Class="MCFAdaptApp.Avalonia.Views.RegisterView"
              x:DataType="vm:RegisterViewModel"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="800" d:DesignWidth="1200"
+             Background="#1E1E1E">
     
     <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
     </UserControl.Resources>
-    
+
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        
-        <!-- 헤더 -->
-        <StackPanel Grid.Row="0" Margin="10">
-            <TextBlock Text="Register" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
-            <TextBlock Text="{Binding PatientId, StringFormat='Patient ID: {0}'}" FontSize="16" Margin="0,0,0,5"/>
-            <Button Content="Load DICOM Files" Command="{Binding LoadDicomFilesCommand}" Padding="10,5" Margin="0,5,0,0"/>
-        </StackPanel>
-        
-        <!-- 메인 콘텐츠 -->
-        <Grid Grid.Row="1" Margin="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            
-            <!-- CBCT 정보 -->
-            <Border Grid.Column="0" BorderBrush="#CCCCCC" BorderThickness="1" Margin="0,0,5,0" Padding="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Sidebar with ListBox -->
+        <Border Grid.Column="0" 
+                Background="#252526" 
+                BorderBrush="#3F3F46" 
+                BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ListBox Grid.Row="0"
+                         Background="Transparent"
+                         Margin="0,0,0,10"
+                         Width="245"
+                         HorizontalAlignment="Stretch">
+                    <ListBox.Styles>
+                        <Style Selector="ScrollBar">
+                            <Setter Property="Width" Value="3"/>
+                            <Setter Property="Margin" Value="1,0,0,0"/>
+                        </Style>
+                        <Style Selector="ScrollBar:horizontal">
+                            <Setter Property="Height" Value="3"/>
+                        </Style>
+                        <Style Selector="ScrollBar /template/ Thumb">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="CornerRadius" Value="1.5"/>
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Height="80" Margin="5,5,0,5" Width="230">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" 
+                                        Background="#2D2D30"
+                                        CornerRadius="4">
+                                    <Image Source="{Binding Thumbnail}" 
+                                           Stretch="UniformToFill"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" 
+                                          Margin="10,0,0,0"
+                                          VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}"
+                                             Foreground="White"
+                                             FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Date}"
+                                             Foreground="#B0B0B0"
+                                             FontSize="12"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Viewport Grid -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Axial View -->
+                <Border Grid.Column="0" Grid.Row="0"
+                        Background="#1E1E1E"
+                        BorderBrush="#3F3F46"
+                        BorderThickness="1"
+                        Margin="2">
+                    <Grid>
+                        <TextBlock Text="Axial"
+                                 Foreground="White"
+                                 Margin="10,5"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Top"/>
+                        <TextBlock Text="x: +0.00"
+                                 Foreground="White"
+                                 Margin="10,5"
+                                 HorizontalAlignment="Right"
+                                 VerticalAlignment="Bottom"/>
+                    </Grid>
+                </Border>
+
+                <!-- Sagittal View -->
+                <Border Grid.Column="1" Grid.Row="0"
+                        Background="#1E1E1E"
+                        BorderBrush="#3F3F46"
+                        BorderThickness="1"
+                        Margin="2">
+                    <Grid>
+                        <TextBlock Text="Sagittal"
+                                 Foreground="White"
+                                 Margin="10,5"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Top"/>
+                        <TextBlock Text="y: +0.00"
+                                 Foreground="White"
+                                 Margin="10,5"
+                                 HorizontalAlignment="Right"
+                                 VerticalAlignment="Bottom"/>
+                    </Grid>
+                </Border>
+
+                <!-- Coronal View -->
+                <Border Grid.Column="0" Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        Background="#1E1E1E"
+                        BorderBrush="#3F3F46"
+                        BorderThickness="1"
+                        Margin="2">
+                    <Grid>
+                        <TextBlock Text="Coronal"
+                                 Foreground="White"
+                                 Margin="10,5"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Top"/>
+                        <TextBlock Text="z: +0.00"
+                                 Foreground="White"
+                                 Margin="10,5"
+                                 HorizontalAlignment="Right"
+                                 VerticalAlignment="Bottom"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Bottom Toolbar -->
+            <Border Grid.Row="1"
+                    Background="#252526"
+                    Height="40">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Text="CBCT" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
-                    
-                    <StackPanel Grid.Row="1" IsVisible="{Binding CBCT, Converter={StaticResource NullToVisibilityConverter}}">
-                        <TextBlock Text="{Binding CBCT.Name}" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding CBCT.DicomFiles.Count, StringFormat='Number of Files: {0}'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding CBCT.Width, StringFormat='Width: {0} pixels'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding CBCT.Height, StringFormat='Height: {0} pixels'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding CBCT.Depth, StringFormat='Depth: {0} slices'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding CBCT.PixelSpacingX, StringFormat='Pixel Spacing X: {0:F2} mm'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding CBCT.PixelSpacingY, StringFormat='Pixel Spacing Y: {0:F2} mm'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding CBCT.SliceThickness, StringFormat='Slice Thickness: {0:F2} mm'}" Margin="0,0,0,5"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/> <!-- Button group -->
+                        <ColumnDefinition Width="Auto"/> <!-- Divider -->
+                        <ColumnDefinition Width="Auto"/> <!-- Overlay dropdown -->
+                        <ColumnDefinition Width="Auto"/> <!-- Primary with info -->
+                        <ColumnDefinition Width="*"/> <!-- Slider - using star to fill available space -->
+                        <ColumnDefinition Width="Auto"/> <!-- Secondary -->
+                        <ColumnDefinition Width="Auto"/> <!-- Divider -->
+                        <ColumnDefinition Width="Auto"/> <!-- Reset views -->
+                        <ColumnDefinition Width="Auto"/> <!-- Other controls -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left Button Group -->
+                    <StackPanel Grid.Column="0"
+                              Orientation="Horizontal"
+                              Margin="4,0">
+                        <!-- First button (two rectangles) -->
+                        <Button Width="20" Height="20" 
+                                Margin="2,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderBrush="#3F3F46"
+                                CornerRadius="2">
+                            <Canvas Width="14" Height="14">
+                                <Rectangle Width="4" Height="11" 
+                                           Canvas.Left="2" Canvas.Top="1.5"
+                                           Fill="White" />
+                                <Rectangle Width="4" Height="11" 
+                                           Canvas.Left="8" Canvas.Top="1.5"
+                                           Fill="White" />
+                            </Canvas>
+                        </Button>
+                        <!-- Second button (stack icon) -->
+                        <Button Width="20" Height="20" 
+                                Margin="2,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderBrush="#3F3F46"
+                                CornerRadius="2">
+                            <Canvas Width="14" Height="14">
+                                <Rectangle Width="12" Height="4" 
+                                           Canvas.Left="1" Canvas.Top="2"
+                                           Fill="White" />
+                                <Rectangle Width="12" Height="4" 
+                                           Canvas.Left="1" Canvas.Top="8"
+                                           Fill="White" />
+                            </Canvas>
+                        </Button>
+                        <!-- Third button (grid icon) -->
+                        <Button Width="20" Height="20" 
+                                Margin="2,0"
+                                Padding="0"
+                                Background="#3F3F46"
+                                BorderBrush="#3F3F46"
+                                CornerRadius="2">
+                            <Canvas Width="14" Height="14">
+                                <Rectangle Width="5" Height="5" 
+                                         Canvas.Left="1" Canvas.Top="1"
+                                         Fill="White" />
+                                <Rectangle Width="5" Height="5" 
+                                         Canvas.Left="8" Canvas.Top="1"
+                                         Fill="White" />
+                                <Rectangle Width="12" Height="5" 
+                                         Canvas.Left="1" Canvas.Top="8"
+                                         Fill="White" />
+                            </Canvas>
+                        </Button>
+                        <!-- Fourth button (now with 4 squares grid) -->
+                        <Button Width="20" Height="20" 
+                                Margin="2,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderBrush="#3F3F46"
+                                CornerRadius="2">
+                            <Canvas Width="14" Height="14">
+                                <Rectangle Width="5" Height="5" 
+                                         Canvas.Left="1" Canvas.Top="1"
+                                         Fill="White" />
+                                <Rectangle Width="5" Height="5" 
+                                         Canvas.Left="8" Canvas.Top="1"
+                                         Fill="White" />
+                                <Rectangle Width="5" Height="5" 
+                                         Canvas.Left="1" Canvas.Top="8"
+                                         Fill="White" />
+                                <Rectangle Width="5" Height="5" 
+                                         Canvas.Left="8" Canvas.Top="8"
+                                         Fill="White" />
+                            </Canvas>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Divider -->
+                    <Rectangle Grid.Column="1"
+                             Width="1"
+                             Margin="4,8"
+                             Fill="#3F3F46"/>
+
+                    <!-- Overlay Dropdown -->
+                    <StackPanel Grid.Column="2"
+                              Orientation="Horizontal"
+                              Margin="8,0,4,0">
+                        <TextBlock Text="Overlay"
+                                 VerticalAlignment="Center"
+                                 Foreground="#B0B0B0"
+                                 FontSize="12"
+                                 Margin="0,0,4,0"/>
+                        <Path Data="M 0,0 L 4,4 L 8,0 Z"
+                              Fill="#B0B0B0"
+                              Width="6"
+                              Height="3"
+                              VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Primary with Info Icon -->
+                    <StackPanel Grid.Column="3"
+                              Orientation="Horizontal"
+                              Margin="4,0,0,0">
+                        <TextBlock Text="Primary"
+                                 VerticalAlignment="Center"
+                                 Foreground="White"
+                                 FontSize="12"/>
+                        <!-- Purple Circle -->
+                        <Ellipse Width="14" Height="14"
+                                Fill="#9370DB"
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Slider with no purple circle -->
+                    <Grid Grid.Column="4"
+                          Margin="0,0,0,0"
+                          VerticalAlignment="Center">
+                        <!-- Real slider control -->
+                        <Slider Minimum="0"
+                                Maximum="100"
+                                Value="50"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                Margin="15,0,15,0"
+                                Height="2">
+                            <Slider.Styles>
+                                <Style Selector="Slider /template/ Thumb">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Setter Property="Width" Value="8"/>
+                                    <Setter Property="Height" Value="8"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                </Style>
+                                <Style Selector="Slider /template/ RepeatButton">
+                                    <Setter Property="Background" Value="#444444"/>
+                                </Style>
+                                <Style Selector="Slider /template/ RepeatButton#PART_DecreaseButton">
+                                    <Setter Property="Background" Value="#444444"/>
+                                </Style>
+                                <Style Selector="Slider /template/ RepeatButton#PART_IncreaseButton">
+                                    <Setter Property="Background" Value="#444444"/>
+                                </Style>
+                                <!-- Ensure nothing shows at the track join-->
+                                <Style Selector="Slider /template/ Grid#PART_TrackGrid">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                            </Slider.Styles>
+                        </Slider>
+                    </Grid>
+
+                    <!-- Secondary -->
+                    <TextBlock Grid.Column="5"
+                             Text="Secondary"
+                             Foreground="White"
+                             FontSize="12"
+                             VerticalAlignment="Center"
+                             Margin="0,0,8,0"/>
+                             
+                    <!-- Divider -->
+                    <Rectangle Grid.Column="6"
+                             Width="1"
+                             Margin="4,8"
+                             Fill="#3F3F46"/>
+                             
+                    <!-- Reset views button -->
+                    <StackPanel Grid.Column="7"
+                              Orientation="Horizontal"
+                              Margin="8,0">
+                        <Path Data="M 0,5 A 5,5 0 1 1 5,10 M 5,10 L 8,7 M 5,10 L 2,7"
+                              Stroke="White"
+                              StrokeThickness="1.5"
+                              Width="12"
+                              Height="12"
+                              Margin="0,0,4,0"
+                              VerticalAlignment="Center"/>
+                        <TextBlock Text="Reset views"
+                                 VerticalAlignment="Center"
+                                 Foreground="White"
+                                 FontSize="12"/>
                     </StackPanel>
                     
-                    <TextBlock Grid.Row="1" Text="No CBCT data available" 
-                               IsVisible="{Binding CBCT, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=true}"
-                               Foreground="Gray" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
-            
-            <!-- Reference CT 정보 -->
-            <Border Grid.Column="1" BorderBrush="#CCCCCC" BorderThickness="1" Margin="5,0,0,0" Padding="10">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Text="Reference CT" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
-                    
-                    <StackPanel Grid.Row="1" IsVisible="{Binding ReferenceCT, Converter={StaticResource NullToVisibilityConverter}}">
-                        <TextBlock Text="{Binding ReferenceCT.Name}" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding ReferenceCT.DicomFiles.Count, StringFormat='Number of Files: {0}'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding ReferenceCT.Width, StringFormat='Width: {0} pixels'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding ReferenceCT.Height, StringFormat='Height: {0} pixels'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding ReferenceCT.Depth, StringFormat='Depth: {0} slices'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding ReferenceCT.PixelSpacingX, StringFormat='Pixel Spacing X: {0:F2} mm'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding ReferenceCT.PixelSpacingY, StringFormat='Pixel Spacing Y: {0:F2} mm'}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding ReferenceCT.SliceThickness, StringFormat='Slice Thickness: {0:F2} mm'}" Margin="0,0,0,5"/>
+                    <!-- Other controls on the far right -->
+                    <StackPanel Grid.Column="8"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="4,0">
+                        <TextBlock Text="W/L"
+                                   Foreground="White"
+                                   FontSize="12"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,4,0"/>
+                        <Button Width="16" Height="16"
+                                Padding="0"
+                                Background="Transparent"
+                                Margin="4,0,0,0">
+                            <TextBlock Text="···"
+                                       Foreground="White"
+                                       FontSize="12"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"/>
+                        </Button>
                     </StackPanel>
-                    
-                    <TextBlock Grid.Row="1" Text="No Reference CT data available" 
-                               IsVisible="{Binding ReferenceCT, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=true}"
-                               Foreground="Gray" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
         </Grid>
-        
-        <!-- 푸터 (상태 메시지 및 오류) -->
-        <StackPanel Grid.Row="2" Margin="10">
-            <TextBlock Text="{Binding StatusMessage}" Foreground="Blue" IsVisible="{Binding StatusMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" IsVisible="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-            <ProgressBar IsIndeterminate="True" Height="5" IsVisible="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,5,0,0"/>
-        </StackPanel>
     </Grid>
 </UserControl>
