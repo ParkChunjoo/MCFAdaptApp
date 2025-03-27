@@ -163,7 +163,7 @@
             <!-- Bottom Toolbar -->
             <Border Grid.Row="1"
                     Background="#252526"
-                    Height="40">
+                    Height="60">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/> <!-- Button group -->
@@ -304,9 +304,10 @@
                             <Slider.Styles>
                                 <Style Selector="Slider /template/ Thumb">
                                     <Setter Property="Background" Value="#9370DB"/>
-                                    <Setter Property="Width" Value="14"/>
-                                    <Setter Property="Height" Value="14"/>
+                                    <Setter Property="Width" Value="24"/>
+                                    <Setter Property="Height" Value="24"/>
                                     <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Margin" Value="0,12,0,0"/>
                                 </Style>
                                 <Style Selector="Slider /template/ RepeatButton">
                                     <Setter Property="Background" Value="#444444"/>
