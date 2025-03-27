@@ -6,383 +6,418 @@
              xmlns:vm="using:MCFAdaptApp.Avalonia.ViewModels"
              x:Class="MCFAdaptApp.Avalonia.Views.RegisterView"
              x:DataType="vm:RegisterViewModel"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1200"
              Background="#1E1E1E">
-    
-    <UserControl.Resources>
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
-    </UserControl.Resources>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+	<UserControl.Resources>
+		<converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+		<converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+	</UserControl.Resources>
 
-        <!-- Left Sidebar with ListBox -->
-        <Border Grid.Column="0" 
-                Background="#252526" 
-                BorderBrush="#3F3F46" 
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="250"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+
+		<!-- Left Sidebar with ListBox -->
+		<Border Grid.Column="0"
+                Background="#252526"
+                BorderBrush="#3F3F46"
                 BorderThickness="0,0,1,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
 
-                <ListBox Grid.Row="0"
+				<ListBox Grid.Row="0"
                          Background="Transparent"
                          Margin="0,0,0,10"
                          Width="245"
                          HorizontalAlignment="Stretch">
-                    <ListBox.Styles>
-                        <Style Selector="ScrollBar">
-                            <Setter Property="Width" Value="3"/>
-                            <Setter Property="Margin" Value="1,0,0,0"/>
-                        </Style>
-                        <Style Selector="ScrollBar:horizontal">
-                            <Setter Property="Height" Value="3"/>
-                        </Style>
-                        <Style Selector="ScrollBar /template/ Thumb">
-                            <Setter Property="Background" Value="White"/>
-                            <Setter Property="CornerRadius" Value="1.5"/>
-                        </Style>
-                    </ListBox.Styles>
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Height="80" Margin="5,5,0,5" Width="230">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="80"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" 
+					<ListBox.Styles>
+						<Style Selector="ScrollBar">
+							<Setter Property="Width" Value="10"/>
+							<Setter Property="Margin" Value="1,0,0,0"/>
+						</Style>
+						<Style Selector="ScrollBar:horizontal">
+							<Setter Property="Height" Value="10"/>
+						</Style>
+						<Style Selector="ScrollBar /template/ Thumb">
+							<Setter Property="Background" Value="White"/>
+							<Setter Property="CornerRadius" Value="1.5"/>
+						</Style>
+					</ListBox.Styles>
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<Grid Height="80" Margin="5,5,0,5" Width="230">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="80"/>
+									<ColumnDefinition Width="*"/>
+								</Grid.ColumnDefinitions>
+								<Border Grid.Column="0"
                                         Background="#2D2D30"
                                         CornerRadius="4">
-                                    <Image Source="{Binding Thumbnail}" 
+									<Image Source="{Binding Thumbnail}"
                                            Stretch="UniformToFill"/>
-                                </Border>
-                                <StackPanel Grid.Column="1" 
+								</Border>
+								<StackPanel Grid.Column="1"
                                           Margin="10,0,0,0"
                                           VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Name}"
+									<TextBlock Text="{Binding Name}"
                                              Foreground="White"
                                              FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Date}"
+									<TextBlock Text="{Binding Date}"
                                              Foreground="#B0B0B0"
                                              FontSize="12"/>
-                                </StackPanel>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </Grid>
-        </Border>
+								</StackPanel>
+							</Grid>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+			</Grid>
+		</Border>
 
-        <!-- Main Content Area -->
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+		<!-- Main Content Area -->
+		<Grid Grid.Column="1">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
 
-            <!-- Viewport Grid -->
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+			<!-- Viewport Grid -->
+			<Grid Grid.Row="0">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
 
-                <!-- Axial View -->
-                <Border Grid.Column="0" Grid.Row="0"
+				<!-- Axial View -->
+				<Border Grid.Column="0" Grid.Row="0"
                         Background="#1E1E1E"
                         BorderBrush="#3F3F46"
                         BorderThickness="1"
                         Margin="2">
-                    <Grid>
-                        <TextBlock Text="Axial"
+					<Grid>
+						<TextBlock Text="Axial"
                                  Foreground="White"
                                  Margin="10,5"
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Top"/>
-                        <TextBlock Text="x: +0.00"
+						<TextBlock Text="x: +0.00"
                                  Foreground="White"
                                  Margin="10,5"
                                  HorizontalAlignment="Right"
                                  VerticalAlignment="Bottom"/>
-                    </Grid>
-                </Border>
+					</Grid>
+				</Border>
 
-                <!-- Sagittal View -->
-                <Border Grid.Column="1" Grid.Row="0"
+				<!-- Sagittal View -->
+				<Border Grid.Column="1" Grid.Row="0"
                         Background="#1E1E1E"
                         BorderBrush="#3F3F46"
                         BorderThickness="1"
                         Margin="2">
-                    <Grid>
-                        <TextBlock Text="Sagittal"
+					<Grid>
+						<TextBlock Text="Sagittal"
                                  Foreground="White"
                                  Margin="10,5"
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Top"/>
-                        <TextBlock Text="y: +0.00"
+						<TextBlock Text="y: +0.00"
                                  Foreground="White"
                                  Margin="10,5"
                                  HorizontalAlignment="Right"
                                  VerticalAlignment="Bottom"/>
-                    </Grid>
-                </Border>
+					</Grid>
+				</Border>
 
-                <!-- Coronal View -->
-                <Border Grid.Column="0" Grid.Row="1"
+				<!-- Coronal View -->
+				<Border Grid.Column="0" Grid.Row="1"
                         Grid.ColumnSpan="2"
                         Background="#1E1E1E"
                         BorderBrush="#3F3F46"
                         BorderThickness="1"
                         Margin="2">
-                    <Grid>
-                        <TextBlock Text="Coronal"
+					<Grid>
+						<TextBlock Text="Coronal"
                                  Foreground="White"
                                  Margin="10,5"
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Top"/>
-                        <TextBlock Text="z: +0.00"
+						<TextBlock Text="z: +0.00"
                                  Foreground="White"
                                  Margin="10,5"
                                  HorizontalAlignment="Right"
                                  VerticalAlignment="Bottom"/>
-                    </Grid>
-                </Border>
-            </Grid>
+					</Grid>
+				</Border>
+			</Grid>
 
-            <!-- Bottom Toolbar -->
-            <Border Grid.Row="1"
+			<!-- Bottom Toolbar -->
+			<Border Grid.Row="1"
                     Background="#252526"
                     Height="40">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/> <!-- Button group -->
-                        <ColumnDefinition Width="Auto"/> <!-- Divider -->
-                        <ColumnDefinition Width="Auto"/> <!-- Overlay dropdown -->
-                        <ColumnDefinition Width="Auto"/> <!-- Primary with info -->
-                        <ColumnDefinition Width="*"/> <!-- Slider - using star to fill available space -->
-                        <ColumnDefinition Width="Auto"/> <!-- Secondary -->
-                        <ColumnDefinition Width="Auto"/> <!-- Divider -->
-                        <ColumnDefinition Width="Auto"/> <!-- Reset views -->
-                        <ColumnDefinition Width="Auto"/> <!-- Other controls -->
-                    </Grid.ColumnDefinitions>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<!-- Button group -->
+						<ColumnDefinition Width="Auto"/>
+						<!-- Divider -->
+						<ColumnDefinition Width="Auto"/>
+						<!-- Overlay dropdown -->
+						<ColumnDefinition Width="Auto"/>
+						<!-- Primary with info -->
+						<ColumnDefinition Width="Auto"/>
+						<!-- White slider between Primary and Secondary -->
+						<ColumnDefinition Width="Auto"/>
+						<!-- Secondary -->
+						<ColumnDefinition Width="Auto"/>
+						<!-- Divider -->
+						<ColumnDefinition Width="Auto"/>
+						<!-- Reset views -->
+						<ColumnDefinition Width="Auto"/>
+						<!-- Other controls (push right) -->
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
 
-                    <!-- Left Button Group -->
-                    <StackPanel Grid.Column="0"
+					<!-- Left Button Group -->
+					<StackPanel Grid.Column="0"
                               Orientation="Horizontal"
                               Margin="4,0">
-                        <!-- First button (two rectangles) -->
-                        <Button Width="20" Height="20" 
+						<!-- First button (two rectangles) -->
+						<Button Width="20" Height="20"
                                 Margin="2,0"
                                 Padding="0"
                                 Background="Transparent"
                                 BorderBrush="#3F3F46"
                                 CornerRadius="2">
-                            <Canvas Width="14" Height="14">
-                                <Rectangle Width="4" Height="11" 
+							<Canvas Width="14" Height="14">
+								<Rectangle Width="4" Height="11"
                                            Canvas.Left="2" Canvas.Top="1.5"
                                            Fill="White" />
-                                <Rectangle Width="4" Height="11" 
+								<Rectangle Width="4" Height="11"
                                            Canvas.Left="8" Canvas.Top="1.5"
                                            Fill="White" />
-                            </Canvas>
-                        </Button>
-                        <!-- Second button (stack icon) -->
-                        <Button Width="20" Height="20" 
+							</Canvas>
+						</Button>
+						<!-- Second button (stack icon) -->
+						<Button Width="20" Height="20"
                                 Margin="2,0"
                                 Padding="0"
                                 Background="Transparent"
                                 BorderBrush="#3F3F46"
                                 CornerRadius="2">
-                            <Canvas Width="14" Height="14">
-                                <Rectangle Width="12" Height="4" 
+							<Canvas Width="14" Height="14">
+								<Rectangle Width="12" Height="4"
                                            Canvas.Left="1" Canvas.Top="2"
                                            Fill="White" />
-                                <Rectangle Width="12" Height="4" 
+								<Rectangle Width="12" Height="4"
                                            Canvas.Left="1" Canvas.Top="8"
                                            Fill="White" />
-                            </Canvas>
-                        </Button>
-                        <!-- Third button (grid icon) -->
-                        <Button Width="20" Height="20" 
+							</Canvas>
+						</Button>
+						<!-- Third button (grid icon) -->
+						<Button Width="20" Height="20"
                                 Margin="2,0"
                                 Padding="0"
                                 Background="#3F3F46"
                                 BorderBrush="#3F3F46"
                                 CornerRadius="2">
-                            <Canvas Width="14" Height="14">
-                                <Rectangle Width="5" Height="5" 
+							<Canvas Width="14" Height="14">
+								<Rectangle Width="5" Height="5"
                                          Canvas.Left="1" Canvas.Top="1"
                                          Fill="White" />
-                                <Rectangle Width="5" Height="5" 
+								<Rectangle Width="5" Height="5"
                                          Canvas.Left="8" Canvas.Top="1"
                                          Fill="White" />
-                                <Rectangle Width="12" Height="5" 
+								<Rectangle Width="12" Height="5"
                                          Canvas.Left="1" Canvas.Top="8"
                                          Fill="White" />
-                            </Canvas>
-                        </Button>
-                        <!-- Fourth button (now with 4 squares grid) -->
-                        <Button Width="20" Height="20" 
+							</Canvas>
+						</Button>
+						<!-- Fourth button (now with 4 squares grid) -->
+						<Button Width="20" Height="20"
                                 Margin="2,0"
                                 Padding="0"
                                 Background="Transparent"
                                 BorderBrush="#3F3F46"
                                 CornerRadius="2">
-                            <Canvas Width="14" Height="14">
-                                <Rectangle Width="5" Height="5" 
+							<Canvas Width="14" Height="14">
+								<Rectangle Width="5" Height="5"
                                          Canvas.Left="1" Canvas.Top="1"
                                          Fill="White" />
-                                <Rectangle Width="5" Height="5" 
+								<Rectangle Width="5" Height="5"
                                          Canvas.Left="8" Canvas.Top="1"
                                          Fill="White" />
-                                <Rectangle Width="5" Height="5" 
+								<Rectangle Width="5" Height="5"
                                          Canvas.Left="1" Canvas.Top="8"
                                          Fill="White" />
-                                <Rectangle Width="5" Height="5" 
+								<Rectangle Width="5" Height="5"
                                          Canvas.Left="8" Canvas.Top="8"
                                          Fill="White" />
-                            </Canvas>
-                        </Button>
-                    </StackPanel>
+							</Canvas>
+						</Button>
+					</StackPanel>
 
-                    <!-- Divider -->
-                    <Rectangle Grid.Column="1"
+					<!-- Divider -->
+					<Rectangle Grid.Column="1"
                              Width="1"
                              Margin="4,8"
                              Fill="#3F3F46"/>
 
-                    <!-- Overlay Dropdown -->
-                    <StackPanel Grid.Column="2"
+					<!-- Overlay Dropdown -->
+					<StackPanel Grid.Column="2"
                               Orientation="Horizontal"
                               Margin="8,0,4,0">
-                        <TextBlock Text="Overlay"
+						<TextBlock Text="Overlay"
                                  VerticalAlignment="Center"
                                  Foreground="#B0B0B0"
                                  FontSize="12"
                                  Margin="0,0,4,0"/>
-                        <Path Data="M 0,0 L 4,4 L 8,0 Z"
+						<Path Data="M 0,0 L 4,4 L 8,0 Z"
                               Fill="#B0B0B0"
                               Width="6"
                               Height="3"
                               VerticalAlignment="Center"/>
-                    </StackPanel>
+					</StackPanel>
 
-                    <!-- Primary with Info Icon -->
-                    <StackPanel Grid.Column="3"
+					<!-- Primary with Info Icon -->
+					<StackPanel Grid.Column="3"
                               Orientation="Horizontal"
                               Margin="4,0,0,0">
-                        <TextBlock Text="Primary"
+						<TextBlock Text="Primary"
                                  VerticalAlignment="Center"
                                  Foreground="White"
                                  FontSize="12"/>
-                        <!-- Purple Circle -->
-                        <Ellipse Width="14" Height="14"
-                                Fill="#9370DB"
-                                Margin="8,0,0,0"
-                                VerticalAlignment="Center"/>
-                    </StackPanel>
+					</StackPanel>
 
-                    <!-- Slider with no purple circle -->
-                    <Grid Grid.Column="4"
-                          Margin="0,0,0,0"
-                          VerticalAlignment="Center">
-                        <!-- Real slider control -->
-                        <Slider Minimum="0"
-                                Maximum="100"
-                                Value="50"
-                                VerticalAlignment="Center"
-                                HorizontalAlignment="Stretch"
-                                Margin="15,0,15,0"
-                                Height="2">
+					<!-- White slider between Primary and Secondary -->
+					<Grid Grid.Column="4"
+                          Margin="0,15,0,15"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Center"
+                          Width="80">
+						<!-- Static track - the gray line -->
+						<Rectangle Height="2" 
+                                 Fill="#444444" 
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Center"
+                                 ZIndex="0"/>
+                         
+                        <!-- The slider itself -->
+						<Slider Name="PrimarySecondarySlider"
+                               Minimum="0"
+                               Maximum="100"
+                               Value="50"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Stretch"
+                               Height="40"
+                               Margin="0,0,0,0"
+                               Padding="0"
+                               Background="Transparent"
+                               Foreground="Transparent"
+                               ZIndex="1">
                             <Slider.Styles>
+                                <!-- Custom centered thumb -->
                                 <Style Selector="Slider /template/ Thumb">
-                                    <Setter Property="Background" Value="White"/>
-                                    <Setter Property="Width" Value="8"/>
-                                    <Setter Property="Height" Value="8"/>
+                                    <Setter Property="Margin" Value="0"/>
+                                    <Setter Property="Template">
+                                        <ControlTemplate>
+                                            <Canvas Width="10" Height="20">
+                                                <Ellipse Width="10" Height="10" Fill="White" Canvas.Top="0"/>
+                                            </Canvas>
+                                        </ControlTemplate>
+                                    </Setter>
+                                </Style>
+                                
+                                <!-- Disable hover effects on slider track -->
+                                <Style Selector="Slider /template/ RepeatButton#PART_DecreaseButton">
+                                    <Setter Property="Background" Value="Transparent"/>
                                     <Setter Property="BorderThickness" Value="0"/>
                                 </Style>
-                                <Style Selector="Slider /template/ RepeatButton">
-                                    <Setter Property="Background" Value="#444444"/>
-                                </Style>
-                                <Style Selector="Slider /template/ RepeatButton#PART_DecreaseButton">
-                                    <Setter Property="Background" Value="#444444"/>
-                                </Style>
                                 <Style Selector="Slider /template/ RepeatButton#PART_IncreaseButton">
-                                    <Setter Property="Background" Value="#444444"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
                                 </Style>
-                                <!-- Ensure nothing shows at the track join-->
-                                <Style Selector="Slider /template/ Grid#PART_TrackGrid">
+                                
+                                <!-- Disable hover highlighting -->
+                                <Style Selector="Slider:pointerover /template/ RepeatButton#PART_DecreaseButton">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="Slider:pointerover /template/ RepeatButton#PART_IncreaseButton">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="Slider:pressed /template/ RepeatButton#PART_DecreaseButton">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="Slider:pressed /template/ RepeatButton#PART_IncreaseButton">
                                     <Setter Property="Background" Value="Transparent"/>
                                 </Style>
                             </Slider.Styles>
                         </Slider>
-                    </Grid>
+					</Grid>
 
-                    <!-- Secondary -->
-                    <TextBlock Grid.Column="5"
+					<!-- Secondary -->
+					<TextBlock Grid.Column="5"
                              Text="Secondary"
                              Foreground="White"
                              FontSize="12"
                              VerticalAlignment="Center"
                              Margin="0,0,8,0"/>
-                             
-                    <!-- Divider -->
-                    <Rectangle Grid.Column="6"
+
+					<!-- Divider -->
+					<Rectangle Grid.Column="6"
                              Width="1"
                              Margin="4,8"
                              Fill="#3F3F46"/>
-                             
-                    <!-- Reset views button -->
-                    <StackPanel Grid.Column="7"
+
+					<!-- Reset views button -->
+					<StackPanel Grid.Column="7"
                               Orientation="Horizontal"
                               Margin="8,0">
-                        <Path Data="M 0,5 A 5,5 0 1 1 5,10 M 5,10 L 8,7 M 5,10 L 2,7"
+						<Path Data="M 0,5 A 5,5 0 1 1 5,10 M 5,10 L 8,7 M 5,10 L 2,7"
                               Stroke="White"
                               StrokeThickness="1.5"
                               Width="12"
                               Height="12"
                               Margin="0,0,4,0"
                               VerticalAlignment="Center"/>
-                        <TextBlock Text="Reset views"
+						<TextBlock Text="Reset views"
                                  VerticalAlignment="Center"
                                  Foreground="White"
                                  FontSize="12"/>
-                    </StackPanel>
-                    
-                    <!-- Other controls on the far right -->
-                    <StackPanel Grid.Column="8"
+					</StackPanel>
+
+					<!-- Other controls on the far right -->
+					<StackPanel Grid.Column="8"
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Right"
                                 Margin="4,0">
-                        <TextBlock Text="W/L"
+						<TextBlock Text="W/L"
                                    Foreground="White"
                                    FontSize="12"
                                    VerticalAlignment="Center"
                                    Margin="0,0,4,0"/>
-                        <Button Width="16" Height="16"
+						<Button Width="16" Height="16"
                                 Padding="0"
                                 Background="Transparent"
                                 Margin="4,0,0,0">
-                            <TextBlock Text="···"
+							<TextBlock Text="···"
                                        Foreground="White"
                                        FontSize="12"
                                        FontWeight="Bold"
                                        VerticalAlignment="Center"/>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Grid>
-    </Grid>
+						</Button>
+					</StackPanel>
+				</Grid>
+			</Border>
+		</Grid>
+	</Grid>
 </UserControl>

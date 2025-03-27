@@ -17,7 +17,7 @@ using Avalonia.VisualTree;
 
 namespace MCFAdaptApp.Avalonia.Views
 {
-    public partial class SelectPatientView : Window
+    public partial class SelectPatientView : UserControl
     {
         private Button? _recentPatientsButton;
         private Button? _allPatientsButton;
@@ -28,16 +28,10 @@ namespace MCFAdaptApp.Avalonia.Views
         private Button? _contourTabButton;
         private Button? _planTabButton;
         private Button? _reviewTabButton;
-        private Button? _minimizeButton;
-        private Button? _restoreMaximizeButton;
-        private Button? _closeButton;
         private DataGrid? _patientsDataGrid;
-        private Grid? _headerBar;
         private ContentControl? _viewContent;
         private Grid? _loadingOverlay;
         private TextBlock? _loadingStatusText;
-        private Point _startPoint;
-        private bool _isPointerPressed;
         
         // Views
         private Grid? _patientView;
@@ -49,9 +43,7 @@ namespace MCFAdaptApp.Avalonia.Views
         public SelectPatientView()
         {
             InitializeComponent();
-#if DEBUG
-            this.AttachDevTools();
-#endif
+            
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] SelectPatientView initialized");
             
             // Get references to UI elements
@@ -64,11 +56,7 @@ namespace MCFAdaptApp.Avalonia.Views
             _contourTabButton = this.FindControl<Button>("ContourTabButton");
             _planTabButton = this.FindControl<Button>("PlanTabButton");
             _reviewTabButton = this.FindControl<Button>("ReviewTabButton");
-            _minimizeButton = this.FindControl<Button>("MinimizeButton");
-            _restoreMaximizeButton = this.FindControl<Button>("RestoreMaximizeButton");
-            _closeButton = this.FindControl<Button>("CloseButton");
             _patientsDataGrid = this.FindControl<DataGrid>("PatientsDataGrid");
-            _headerBar = this.FindControl<Grid>("HeaderBar");
             _viewContent = this.FindControl<ContentControl>("ViewContent");
             _loadingOverlay = this.FindControl<Grid>("LoadingOverlay");
             _loadingStatusText = this.FindControl<TextBlock>("LoadingStatusText");
@@ -87,22 +75,11 @@ namespace MCFAdaptApp.Avalonia.Views
             if (_contourTabButton != null) _contourTabButton.Click += ContourTabButton_Click;
             if (_planTabButton != null) _planTabButton.Click += PlanTabButton_Click;
             if (_reviewTabButton != null) _reviewTabButton.Click += ReviewTabButton_Click;
-            if (_minimizeButton != null) _minimizeButton.Click += MinimizeButton_Click;
-            if (_restoreMaximizeButton != null) _restoreMaximizeButton.Click += RestoreMaximizeButton_Click;
-            if (_closeButton != null) _closeButton.Click += CloseButton_Click;
             if (_patientsDataGrid != null) _patientsDataGrid.SelectionChanged += DataGrid_SelectionChanged;
             
             // Attach the event handler for the Select Reference Plan button
             // This will be done after the visual tree is constructed
             this.AttachedToVisualTree += (s, e) => AttachSelectPlanButtonHandlers();
-            
-            // Add window dragging functionality
-            if (_headerBar != null)
-            {
-                _headerBar.PointerPressed += HeaderBar_PointerPressed;
-                _headerBar.PointerReleased += HeaderBar_PointerReleased;
-                _headerBar.PointerMoved += HeaderBar_PointerMoved;
-            }
             
             // Set DataContext
             if (global::Avalonia.Application.Current is App app)
@@ -257,13 +234,17 @@ namespace MCFAdaptApp.Avalonia.Views
         
         private void PatientTabButton_Click(object? sender, RoutedEventArgs e)
         {
+            // Reset all tab buttons
             ResetTabButtons();
+            
+            // Set this button as active
             if (_patientTabButton != null)
             {
                 _patientTabButton.Classes.Remove("tabButton");
                 _patientTabButton.Classes.Add("activeTabButton");
             }
             
+            // Show the Patient view
             if (_viewContent != null && _patientView != null)
             {
                 _viewContent.Content = _patientView;
@@ -272,45 +253,51 @@ namespace MCFAdaptApp.Avalonia.Views
         
         private void RegisterTabButton_Click(object? sender, RoutedEventArgs e)
         {
-            // Only allow navigation to RegisterView if a patient is selected
-            if (DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
+            // Ensure we have a register view
+            if (_registerView == null && global::Avalonia.Application.Current is App app)
             {
-                ResetTabButtons();
-                if (_registerTabButton != null)
-                {
-                    _registerTabButton.Classes.Remove("tabButton");
-                    _registerTabButton.Classes.Add("activeTabButton");
-                }
+                _registerView = app.Services.GetService(typeof(RegisterView)) as RegisterView;
                 
-                if (_registerView != null && _viewContent != null)
+                // Additional setup if needed
+                if (_registerView != null && DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
                 {
-                    // Set PatientId in RegisterViewModel
                     if (_registerView.DataContext is RegisterViewModel registerViewModel)
                     {
                         registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
                     }
-                    
-                    // Display the RegisterView
-                    _viewContent.Content = _registerView;
                 }
             }
-            else
+            
+            // Reset all tab buttons
+            ResetTabButtons();
+            
+            // Set this button as active
+            if (_registerTabButton != null)
             {
-                // Show a message to the user that they need to select a patient
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Cannot navigate to Register tab: No patient selected");
-                // You could add more user-friendly notification here
+                _registerTabButton.Classes.Remove("tabButton");
+                _registerTabButton.Classes.Add("activeTabButton");
+            }
+            
+            // Show the Register view
+            if (_viewContent != null && _registerView != null)
+            {
+                _viewContent.Content = _registerView;
             }
         }
         
         private void ContourTabButton_Click(object? sender, RoutedEventArgs e)
         {
+            // Reset all tab buttons
             ResetTabButtons();
+            
+            // Set this button as active
             if (_contourTabButton != null)
             {
                 _contourTabButton.Classes.Remove("tabButton");
                 _contourTabButton.Classes.Add("activeTabButton");
             }
             
+            // Show the Contour view
             if (_viewContent != null && _contourView != null)
             {
                 _viewContent.Content = _contourView;
@@ -319,13 +306,17 @@ namespace MCFAdaptApp.Avalonia.Views
         
         private void PlanTabButton_Click(object? sender, RoutedEventArgs e)
         {
+            // Reset all tab buttons
             ResetTabButtons();
+            
+            // Set this button as active
             if (_planTabButton != null)
             {
                 _planTabButton.Classes.Remove("tabButton");
                 _planTabButton.Classes.Add("activeTabButton");
             }
             
+            // Show the Plan view
             if (_viewContent != null && _planView != null)
             {
                 _viewContent.Content = _planView;
@@ -334,214 +325,141 @@ namespace MCFAdaptApp.Avalonia.Views
         
         private void ReviewTabButton_Click(object? sender, RoutedEventArgs e)
         {
+            // Reset all tab buttons
             ResetTabButtons();
+            
+            // Set this button as active
             if (_reviewTabButton != null)
             {
                 _reviewTabButton.Classes.Remove("tabButton");
                 _reviewTabButton.Classes.Add("activeTabButton");
             }
             
+            // Show the Review view
             if (_viewContent != null && _reviewView != null)
             {
                 _viewContent.Content = _reviewView;
             }
         }
         
-        private void MinimizeButton_Click(object? sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
-        
-        private void RestoreMaximizeButton_Click(object? sender, RoutedEventArgs e)
-        {
-            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-        }
-        
-        private void CloseButton_Click(object? sender, RoutedEventArgs e)
-        {
-            // Close the window
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Close button clicked, closing application");
-            this.Close();
-            
-            // If needed, can also exit the application entirely
-            if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.Shutdown();
-            }
-        }
-        
         private void DataGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            try
+            if (DataContext is SelectPatientViewModel viewModel)
             {
-                // Only process if we have added items (new selection)
-                if (e.AddedItems == null || e.AddedItems.Count == 0)
-                    return;
-                
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] DataGrid_SelectionChanged triggered");
-                
-                var patient = e.AddedItems[0] as MCFAdaptApp.Domain.Models.Patient;
-                if (patient == null || !(DataContext is SelectPatientViewModel viewModel))
-                    return;
-                
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Patient selected in DataGrid: {patient.PatientId}");
-                
-                // Update patient initials immediately for responsive UI
-                UpdatePatientInitials(patient);
-                
-                // Set the selected patient in view model - this will trigger the SelectedPatient setter
-                // which now immediately sets the AnatomyModels from cache
-                viewModel.SelectedPatient = patient;
-                
-                // Force immediate UI update on the UI thread with highest priority
-                Dispatcher.UIThread.Post(() => 
+                if (viewModel.SelectedPatient != null)
                 {
-                    // Explicitly notify UI that these properties changed
-                    viewModel.OnPropertyChanged("SelectedPatient");
-                    if (patient.AnatomyModels != null)
+                    // Update the patient initials
+                    UpdatePatientInitials(viewModel.SelectedPatient);
+                    
+                    // If this patient has anatomy models, fetch them
+                    if (viewModel.SelectedPatient.AnatomyModels == null || !viewModel.SelectedPatient.AnatomyModels.Any())
                     {
-                        // Force anatomy models to update
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Forcing AnatomyModels UI update");
-                        viewModel.OnPropertyChanged("SelectedPatient.AnatomyModels");
-                    }
-                }, DispatcherPriority.Render);
-                
-                // Load anatomy models in background without awaiting
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading anatomy models in background");
-                        await viewModel.LoadAnatomyModelsAsync(patient.PatientId);
-                        
-                        // Force another UI update after background loading is complete
-                        Dispatcher.UIThread.Post(() => 
+                        Task.Run(async () =>
                         {
-                            viewModel.OnPropertyChanged("SelectedPatient");
-                            if (patient.AnatomyModels != null)
+                            try
                             {
-                                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Background loaded models UI update");
-                                viewModel.OnPropertyChanged("SelectedPatient.AnatomyModels");
+                                // Show loading overlay
+                                Dispatcher.UIThread.Post(() =>
+                                {
+                                    if (_loadingOverlay != null) _loadingOverlay.IsVisible = true;
+                                    if (_loadingStatusText != null) _loadingStatusText.Text = "Loading patient data...";
+                                });
+                                
+                                // Simulate loading delay - replace with actual data loading
+                                await Task.Delay(1000);
+                                
+                                // Hide loading overlay
+                                Dispatcher.UIThread.Post(() =>
+                                {
+                                    if (_loadingOverlay != null) _loadingOverlay.IsVisible = false;
+                                });
                             }
-                        }, DispatcherPriority.Render);
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error loading patient data: {ex.Message}");
+                                
+                                // Hide loading overlay
+                                Dispatcher.UIThread.Post(() =>
+                                {
+                                    if (_loadingOverlay != null) _loadingOverlay.IsVisible = false;
+                                });
+                            }
+                        });
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Background loading error: {ex.Message}");
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] ERROR in DataGrid_SelectionChanged: {ex.Message}");
+                }
             }
         }
         
         private void UpdatePatientInitials(MCFAdaptApp.Domain.Models.Patient patient)
         {
+            // Get the patient initials
+            var firstInitial = !string.IsNullOrEmpty(patient.FirstName) ? patient.FirstName[0].ToString() : "";
+            var lastInitial = !string.IsNullOrEmpty(patient.LastName) ? patient.LastName[0].ToString() : "";
+            var initials = (firstInitial + lastInitial).ToUpper();
+            
+            // Find the TextBlock and update it
             var initialsTextBlock = this.FindControl<TextBlock>("PatientInitials");
             if (initialsTextBlock != null)
             {
-                string firstName = patient.FirstName ?? string.Empty;
-                string lastName = patient.LastName ?? string.Empty;
-                
-                string initials = string.Empty;
-                if (!string.IsNullOrEmpty(firstName) && firstName.Length > 0)
-                {
-                    initials += firstName[0];
-                }
-                
-                if (!string.IsNullOrEmpty(lastName) && lastName.Length > 0)
-                {
-                    initials += lastName[0];
-                }
-                
-                // Update UI immediately on UI thread
-                Dispatcher.UIThread.Post(() => 
-                {
-                    initialsTextBlock.Text = initials.ToUpper();
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Updated patient initials to: {initials.ToUpper()}");
-                }, DispatcherPriority.Render);
-            }
-        }
-        
-        // Window dragging functionality
-        private void HeaderBar_PointerPressed(object? sender, PointerPressedEventArgs e)
-        {
-            if (this.WindowState == WindowState.Maximized)
-                return;
-                
-            _isPointerPressed = true;
-            _startPoint = e.GetPosition(this);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] HeaderBar_PointerPressed at {_startPoint}");
-        }
-        
-        private void HeaderBar_PointerReleased(object? sender, PointerReleasedEventArgs e)
-        {
-            _isPointerPressed = false;
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] HeaderBar_PointerReleased");
-        }
-        
-        private void HeaderBar_PointerMoved(object? sender, PointerEventArgs e)
-        {
-            if (_isPointerPressed && this.WindowState != WindowState.Maximized)
-            {
-                var currentPoint = e.GetPosition(this);
-                var offset = currentPoint - _startPoint;
-                
-                if (offset.X != 0 || offset.Y != 0)
-                {
-                    Position = new PixelPoint(Position.X + (int)offset.X, Position.Y + (int)offset.Y);
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Window moved to {Position}");
-                }
+                initialsTextBlock.Text = initials;
             }
         }
         
         private void ResetTabButtons()
         {
-            if (_patientTabButton != null) _patientTabButton.Classes.Remove("activeTabButton");
-            if (_patientTabButton != null) _patientTabButton.Classes.Add("tabButton");
+            // Reset all tab buttons to default style
+            if (_patientTabButton != null)
+            {
+                _patientTabButton.Classes.Remove("activeTabButton");
+                _patientTabButton.Classes.Add("tabButton");
+            }
             
-            if (_registerTabButton != null) _registerTabButton.Classes.Remove("activeTabButton");
-            if (_registerTabButton != null) _registerTabButton.Classes.Add("tabButton");
+            if (_registerTabButton != null)
+            {
+                _registerTabButton.Classes.Remove("activeTabButton");
+                _registerTabButton.Classes.Add("tabButton");
+            }
             
-            if (_contourTabButton != null) _contourTabButton.Classes.Remove("activeTabButton");
-            if (_contourTabButton != null) _contourTabButton.Classes.Add("tabButton");
+            if (_contourTabButton != null)
+            {
+                _contourTabButton.Classes.Remove("activeTabButton");
+                _contourTabButton.Classes.Add("tabButton");
+            }
             
-            if (_planTabButton != null) _planTabButton.Classes.Remove("activeTabButton");
-            if (_planTabButton != null) _planTabButton.Classes.Add("tabButton");
+            if (_planTabButton != null)
+            {
+                _planTabButton.Classes.Remove("activeTabButton");
+                _planTabButton.Classes.Add("tabButton");
+            }
             
-            if (_reviewTabButton != null) _reviewTabButton.Classes.Remove("activeTabButton");
-            if (_reviewTabButton != null) _reviewTabButton.Classes.Add("tabButton");
+            if (_reviewTabButton != null)
+            {
+                _reviewTabButton.Classes.Remove("activeTabButton");
+                _reviewTabButton.Classes.Add("tabButton");
+            }
         }
-
+        
         private void AttachSelectPlanButtonHandlers()
         {
             try
             {
-                // Find all buttons with specific content
-                var planButtons = this.GetVisualDescendants()
+                // Find all buttons with the name "SelectReferencePlanButton"
+                var buttons = this.GetVisualDescendants()
                     .OfType<Button>()
-                    .Where(b => b.Content?.ToString() == "Select As Reference Plan");
+                    .Where(b => b.Name == "SelectReferencePlanButton")
+                    .ToList();
                 
-                int count = 0;
-                foreach (var button in planButtons)
+                Console.WriteLine($"Found {buttons.Count} Select Reference Plan buttons");
+                
+                // Attach the click handler to each button
+                foreach (var button in buttons)
                 {
                     button.Click += SelectReferencePlanButton_Click;
-                    count++;
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Attached click handler to Select Plan button {count}");
-                }
-                
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Found and attached handlers to {count} reference plan buttons");
-                
-                if (count == 0)
-                {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] WARNING: No reference plan buttons found to attach handlers");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error attaching Select Plan button handlers: {ex.Message}");
+                Console.WriteLine($"Error attaching Select Reference Plan button handlers: {ex.Message}");
             }
         }
         
@@ -549,86 +467,68 @@ namespace MCFAdaptApp.Avalonia.Views
         {
             try
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Select As Reference Plan button clicked");
-                
-                // Get reference to the loading overlay and status text
-                var loadingOverlay = this.FindControl<Grid>("LoadingOverlay");
-                var statusText = this.FindControl<TextBlock>("LoadingStatusText");
+                Console.WriteLine("SelectReferencePlanButton_Click triggered - showing loading overlay");
                 
                 // Show loading overlay
-                if (loadingOverlay != null)
+                if (_loadingOverlay != null) 
                 {
-                    loadingOverlay.IsVisible = true;
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading overlay is now visible");
-                }
-                
-                // Phase 1: Loading CBCT Projections (2 seconds)
-                if (statusText != null)
-                {
-                    statusText.Text = "Loading CBCT Projections...";
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Status: Loading CBCT Projections...");
-                }
-                
-                await Task.Delay(2000); // Wait for 2 seconds
-                
-                // Phase 2: Loading Reference Plan Data (2 seconds)
-                if (statusText != null)
-                {
-                    statusText.Text = "Loading Reference Plan Data...";
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Status: Loading Reference Plan Data...");
-                }
-                
-                await Task.Delay(2000); // Wait for 2 seconds
-                
-                // Hide loading overlay
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading overlay is now hidden");
-                }
-                
-                // Switch to Register tab
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Directly switching to Register tab");
-                
-                // Direct tab switching - reuse the tab button click method
-                if (_registerTabButton != null)
-                {
-                    // Reset all tabs first
-                    ResetTabButtons();
-                    
-                    // Set Register tab as active
-                    _registerTabButton.Classes.Remove("tabButton");
-                    _registerTabButton.Classes.Add("activeTabButton");
-                    
-                    // Manually set the content control to display RegisterView
-                    if (_viewContent != null && _registerView != null)
-                    {
-                        // Set the Register view as the content
-                        _viewContent.Content = _registerView;
-                        
-                        // Update the RegisterViewModel with patient ID if needed
-                        if (_registerView.DataContext is RegisterViewModel registerViewModel &&
-                            DataContext is SelectPatientViewModel viewModel && 
-                            viewModel.SelectedPatient != null)
-                        {
-                            registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
-                        }
-                        
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Register view now displayed");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] ERROR: Cannot switch to Register view - _viewContent or _registerView is null");
-                    }
+                    _loadingOverlay.IsVisible = true;
+                    Console.WriteLine("Loading overlay visibility set to true");
                 }
                 else
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] ERROR: Cannot switch to Register tab - _registerTabButton is null");
+                    Console.WriteLine("WARNING: _loadingOverlay is null");
+                }
+                
+                // Phase 1: Loading CBCT Projections (2 seconds)
+                if (_loadingStatusText != null) 
+                {
+                    _loadingStatusText.Text = "Loading CBCT Projections...";
+                    Console.WriteLine("Loading status text updated to: Loading CBCT Projections");
+                }
+                else
+                {
+                    Console.WriteLine("WARNING: _loadingStatusText is null");
+                }
+                
+                // Wait for 2 seconds for first phase
+                await Task.Delay(2000);
+                
+                // Phase 2: Loading Reference Plan Data (2 seconds)
+                if (_loadingStatusText != null)
+                {
+                    _loadingStatusText.Text = "Loading Reference Plan Data...";
+                    Console.WriteLine("Loading status text updated to: Loading Reference Plan Data");
+                }
+                
+                // Wait for 2 seconds for second phase
+                await Task.Delay(2000);
+                
+                // Navigate to the Register tab
+                if (_registerTabButton != null)
+                {
+                    Console.WriteLine("Navigating to Register tab");
+                    RegisterTabButton_Click(_registerTabButton, e);
+                }
+                else
+                {
+                    Console.WriteLine("WARNING: _registerTabButton is null");
+                }
+                
+                // Hide loading overlay
+                if (_loadingOverlay != null)
+                {
+                    Console.WriteLine("Setting loading overlay visibility to false");
+                    _loadingOverlay.IsVisible = false;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] ERROR in SelectReferencePlanButton_Click: {ex.Message}");
+                Console.WriteLine($"ERROR in SelectReferencePlanButton_Click: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                // Hide loading overlay
+                if (_loadingOverlay != null) _loadingOverlay.IsVisible = false;
             }
         }
     }
