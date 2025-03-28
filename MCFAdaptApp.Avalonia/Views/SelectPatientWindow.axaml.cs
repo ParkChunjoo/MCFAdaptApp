@@ -18,8 +18,13 @@ namespace MCFAdaptApp.Avalonia.Views
         private Point _startPoint;
         private bool _isPointerPressed;
         
+        public SelectPatientWindowViewModel ViewModel { get; }
+        
         public SelectPatientWindow()
         {
+            ViewModel = new SelectPatientWindowViewModel();
+            DataContext = ViewModel;
+            
             InitializeComponent();
 #if DEBUG
             this.AttachDevTools();
@@ -111,4 +116,4 @@ namespace MCFAdaptApp.Avalonia.Views
             }
         }
     }
-} 
+}  

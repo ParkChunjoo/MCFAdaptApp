@@ -187,29 +187,31 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating SelectPatientWindow");
                     
                     // Create the patient view model directly
-                    var viewModel = new SelectPatientViewModel(new FilePatientService());
+                    var patientViewModel = new SelectPatientViewModel(new FilePatientService());
                     
-                    // Create and show the new patient window
-                    var patientWindow = new SelectPatientWindow(viewModel);
+                    var mainWindow = new MainWindow();
+                    var patientView = new SelectPatientView(patientViewModel);
                     
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Showing SelectPatientWindow");
+                    if (mainWindow.Content is Grid mainGrid && mainGrid.Children.Count > 1 && mainGrid.Children[1] is TabControl tabControl)
+                    {
+                        tabControl.SelectedIndex = 0;
+                    }
+                    
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Showing MainWindow with SelectPatientView");
 
-                    // Set the patient window as the main window
                     if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                     {
                         // Get the current login window
                         var currentWindow = desktop.MainWindow;
                         
-                        // Set the patient window as the main window
-                        desktop.MainWindow = patientWindow;
+                        desktop.MainWindow = mainWindow;
                         
-                        // Show the patient window
-                        patientWindow.Show();
+                        mainWindow.Show();
                         
                         // Close the login window
                         currentWindow?.Close();
                         
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Main window switched to SelectPatientWindow");
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Main window switched to MainWindow");
                     }
                     else
                     {

@@ -137,7 +137,9 @@ namespace MCFAdaptApp.Avalonia.Views
                     {
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Directly setting ViewContent to RegisterView");
                         
-                        var mainWindow = (App.Current?.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow;
+                        var mainWindow = global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                            ? desktop.MainWindow as MainWindow
+                            : null;
                         if (mainWindow != null && DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
                         {
                             mainWindow.ViewModel.SetPatientInfo(
@@ -147,12 +149,14 @@ namespace MCFAdaptApp.Avalonia.Views
                             );
                         }
                         
-                        // Set PatientId in RegisterViewModel if needed
                         if (_registerView.DataContext is RegisterViewModel registerViewModel && 
                             DataContext is SelectPatientViewModel viewModel2 && 
                             viewModel2.SelectedPatient != null)
                         {
-                            registerViewModel.PatientId = viewModel2.SelectedPatient.PatientId;
+                            registerViewModel.InitializeAsync(
+                                viewModel2.SelectedPatient.PatientId,
+                                viewModel2.SelectedPatient.DisplayName,
+                                viewModel2.SelectedPatient.DateOfBirth).ConfigureAwait(false);
                         }
                         
                         // Set the content
@@ -273,7 +277,9 @@ namespace MCFAdaptApp.Avalonia.Views
                 // Additional setup if needed
                 if (_registerView != null && DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
                 {
-                    var mainWindow = (App.Current?.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow;
+                    var mainWindow = global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                        ? desktop.MainWindow as MainWindow
+                        : null;
                     if (mainWindow != null)
                     {
                         mainWindow.ViewModel.SetPatientInfo(
@@ -285,7 +291,10 @@ namespace MCFAdaptApp.Avalonia.Views
                     
                     if (_registerView.DataContext is RegisterViewModel registerViewModel)
                     {
-                        registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
+                        registerViewModel.InitializeAsync(
+                            viewModel.SelectedPatient.PatientId,
+                            viewModel.SelectedPatient.DisplayName,
+                            viewModel.SelectedPatient.DateOfBirth).ConfigureAwait(false);
                     }
                 }
             }
