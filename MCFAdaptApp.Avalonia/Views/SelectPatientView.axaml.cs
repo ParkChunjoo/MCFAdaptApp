@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
@@ -14,6 +15,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using System.Linq;
 using Avalonia.VisualTree;
+using MCFAdaptApp.Domain.Models;
 
 namespace MCFAdaptApp.Avalonia.Views
 {
@@ -135,12 +137,22 @@ namespace MCFAdaptApp.Avalonia.Views
                     {
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Directly setting ViewContent to RegisterView");
                         
+                        var mainWindow = (App.Current?.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow;
+                        if (mainWindow != null && DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
+                        {
+                            mainWindow.ViewModel.SetPatientInfo(
+                                viewModel.SelectedPatient.PatientId,
+                                viewModel.SelectedPatient.DisplayName,
+                                viewModel.SelectedPatient.DateOfBirth
+                            );
+                        }
+                        
                         // Set PatientId in RegisterViewModel if needed
                         if (_registerView.DataContext is RegisterViewModel registerViewModel && 
-                            DataContext is SelectPatientViewModel viewModel && 
-                            viewModel.SelectedPatient != null)
+                            DataContext is SelectPatientViewModel viewModel2 && 
+                            viewModel2.SelectedPatient != null)
                         {
-                            registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
+                            registerViewModel.PatientId = viewModel2.SelectedPatient.PatientId;
                         }
                         
                         // Set the content
@@ -261,6 +273,16 @@ namespace MCFAdaptApp.Avalonia.Views
                 // Additional setup if needed
                 if (_registerView != null && DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
                 {
+                    var mainWindow = (App.Current?.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow;
+                    if (mainWindow != null)
+                    {
+                        mainWindow.ViewModel.SetPatientInfo(
+                            viewModel.SelectedPatient.PatientId,
+                            viewModel.SelectedPatient.DisplayName,
+                            viewModel.SelectedPatient.DateOfBirth
+                        );
+                    }
+                    
                     if (_registerView.DataContext is RegisterViewModel registerViewModel)
                     {
                         registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;

@@ -52,11 +52,13 @@ namespace MCFAdaptApp.Avalonia
             services.AddTransient<LoginView>();
             services.AddTransient<SelectPatientView>();
             services.AddTransient<RegisterView>();
+            services.AddTransient<MainWindow>();
 
             // Register viewmodels
             services.AddTransient<ViewModels.LoginViewModel>();
             services.AddTransient<ViewModels.SelectPatientViewModel>();
             services.AddTransient<ViewModels.RegisterViewModel>();
+            services.AddTransient<ViewModels.MainWindowViewModel>();
         }
     }
 }
