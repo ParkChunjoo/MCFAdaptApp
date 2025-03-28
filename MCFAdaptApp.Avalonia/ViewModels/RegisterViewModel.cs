@@ -22,6 +22,8 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private string? _statusMessage;
         private bool _hasError;
         private string _errorMessage = string.Empty;
+        private string _patientName = string.Empty;
+        private DateTime? _patientDateOfBirth;
 
         /// <summary>
         /// CBCT 이미지 데이터
@@ -117,6 +119,30 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
+        /// </summary>
+        public string PatientName
+        {
+            get => _patientName;
+            set
+            {
+                _patientName = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// </summary>
+        public DateTime? PatientDateOfBirth
+        {
+            get => _patientDateOfBirth;
+            set
+            {
+                _patientDateOfBirth = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
         /// DICOM 파일 로드 명령
         /// </summary>
         public ICommand LoadDicomFilesCommand { get; private set; }
@@ -195,9 +221,11 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// 환자 ID 설정 및 DICOM 파일 로드
         /// </summary>
         /// <param name="patientId">환자 ID</param>
-        public async Task InitializeAsync(string patientId)
+        public async Task InitializeAsync(string patientId, string patientName = "", DateTime? patientDateOfBirth = null)
         {
             PatientId = patientId;
+            PatientName = patientName;
+            PatientDateOfBirth = patientDateOfBirth;
             await LoadDicomFilesAsync();
         }
 

@@ -141,6 +141,8 @@ namespace MCFAdaptApp.Avalonia.Views
                             viewModel.SelectedPatient != null)
                         {
                             registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
+                            registerViewModel.PatientName = viewModel.SelectedPatient.DisplayName;
+                            registerViewModel.PatientDateOfBirth = viewModel.SelectedPatient.DateOfBirth;
                         }
                         
                         // Set the content
@@ -264,6 +266,8 @@ namespace MCFAdaptApp.Avalonia.Views
                     if (_registerView.DataContext is RegisterViewModel registerViewModel)
                     {
                         registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
+                        registerViewModel.PatientName = viewModel.SelectedPatient.DisplayName;
+                        registerViewModel.PatientDateOfBirth = viewModel.SelectedPatient.DateOfBirth;
                     }
                 }
             }
