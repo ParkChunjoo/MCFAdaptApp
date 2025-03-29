@@ -60,7 +60,6 @@ namespace MCFAdaptApp.Infrastructure.Services
             if (!File.Exists(_patientFilePath))
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Patient file not found, creating sample data");
-                //await CreateSampleDataAsync();
             }
 
             try
@@ -140,33 +139,7 @@ namespace MCFAdaptApp.Infrastructure.Services
             }
         }
 
-        /// <summary>
-        /// Creates sample patient data
-        /// </summary>
-        private async Task CreateSampleDataAsync()
-        {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating sample patient data");
 
-            var samplePatients = new List<string>
-            {
-                "146125\tPatricia\tSmith",
-                "168014\tRobert\tBrown",
-                "187584\tRobert\tMoore",
-                "172483\tRobert\tMiller",
-                "167238\tJennifer\tSmith",
-                "148796\tJohn\tMoore",
-                "127323\tMary\tWilson",
-                "102338\tJames\tJohnson",
-                "136649\tRobert\tDavis",
-                "144037\tPatricia\tSmith",
-                "140281\tMichael\tWilson",
-                "119088\tPatricia\tBrown",
-                "148051\tRobert\tBrown"
-            };
-
-            await File.WriteAllLinesAsync(_patientFilePath, samplePatients);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Sample data created with {samplePatients.Count} patients");
-        }
 
         /// <summary>
         /// 임의의 생년월일을 생성합니다 (20-90세 사이)
