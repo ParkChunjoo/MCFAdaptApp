@@ -610,7 +610,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// <summary>
         /// Register 탭으로 이동 이벤트 발생
         /// </summary>
-        protected virtual void OnNavigateToRegister(string patientId)
+        public virtual void OnNavigateToRegister(string patientId)
         {
             NavigateToRegister?.Invoke(this, patientId);
         }

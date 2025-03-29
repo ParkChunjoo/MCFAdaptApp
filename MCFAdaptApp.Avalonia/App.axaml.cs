@@ -48,6 +48,8 @@ namespace MCFAdaptApp.Avalonia
             services.AddSingleton<IPatientService, FilePatientService>();
             services.AddSingleton<IDicomService, DicomService>();
 
+            services.AddTransient<MainWindow>();
+
             // Register views
             services.AddTransient<LoginView>();
             services.AddTransient<SelectPatientView>();

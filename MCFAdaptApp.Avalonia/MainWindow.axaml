@@ -3,18 +3,141 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="using:MCFAdaptApp.Avalonia.Views"
+        xmlns:converters="using:MCFAdaptApp.Avalonia.Converters"
         mc:Ignorable="d"
         x:Class="MCFAdaptApp.Avalonia.MainWindow"
         Title="MCF Adapt App" Height="768" Width="1024"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Background="#FF1E1E1E"
+        SystemDecorations="None"
+        CanResize="True"
+        WindowState="Maximized">
+    
+    <Window.Styles>
+        <!-- Tab button style -->
+        <Style Selector="Button.tabButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinWidth" Value="90"/>
+        </Style>
+        
+        <Style Selector="Button.tabButton:pointerover">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        
+        <!-- Active tab button style -->
+        <Style Selector="Button.activeTabButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0,0,0,3"/>
+            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinWidth" Value="90"/>
+        </Style>
+        
+        <!-- Search box style -->
+        <Style Selector="TextBox.searchBox">
+            <Setter Property="Background" Value="#FF2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FF3F3F46"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+        </Style>
+        
+        <!-- Search button style -->
+        <Style Selector="Button.searchButton">
+            <Setter Property="Background" Value="#FF007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+        </Style>
+        
+        <Style Selector="Button.searchButton:pointerover">
+            <Setter Property="Background" Value="#FF1C97EA"/>
+        </Style>
+        
+        <!-- List header style -->
+        <Style Selector="TextBlock.listHeader">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Background" Value="#FF2D2D30"/>
+        </Style>
+        
+        <!-- List item style -->
+        <Style Selector="TextBlock.listItem">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="5"/>
+        </Style>
+    </Window.Styles>
+    
+    <Window.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+    </Window.Resources>
     
     <Grid>
-        <TabControl x:Name="MainTabControl">
-            <TabItem Header="Patient">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="*"/> <!-- Content -->
+        </Grid.RowDefinitions>
+        
+        <!-- Header with logo and window controls -->
+        <Grid Grid.Row="0" Background="#FF1E1E1E" Name="HeaderBar">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left area for logo -->
+            <TextBlock Grid.Column="0" Text="MCF-Adapt" Foreground="White" FontSize="15" FontWeight="SemiBold" 
+                      Margin="10,5" VerticalAlignment="Center" FontFamily="Segoe UI"/>
+            
+            <!-- Center text - this area will be draggable -->
+            <TextBlock Grid.Column="1" Text="Not for clinical use - evaluation use only" 
+                      Foreground="#AAAAAA" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe UI"/>
+            
+            <!-- Window controls -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,5">
+                <Button Content="_" Foreground="White" Background="Transparent" BorderThickness="0" Margin="5,0"
+                        Name="MinimizeButton" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" 
+                        Height="30" FontFamily="Segoe UI" FontSize="14"/>
+                <Button Content="□" Foreground="White" Background="Transparent" BorderThickness="0" Margin="5,0"
+                        Name="RestoreMaximizeButton" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" 
+                        Height="30" FontFamily="Segoe UI" FontSize="14"/>
+                <Button Content="X" Foreground="Red" Background="Transparent" BorderThickness="0" Margin="5,0"
+                        Name="CloseButton" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40" 
+                        Height="30" FontFamily="Segoe UI" FontSize="14"/>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Tab control in the content area -->
+        <TabControl x:Name="MainTabControl" Grid.Row="1">
+            <TabItem Header="Patient" Name="PatientTab">
                 <views:SelectPatientView />
             </TabItem>
-            <TabItem Header="Register">
-                <views:RegisterView />
+            <TabItem Header="Register" Name="RegisterTab">
+                <views:RegisterView x:Name="RegisterView" />
             </TabItem>
             <TabItem Header="Contour">
                 <TextBlock Text="Contour View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" />
