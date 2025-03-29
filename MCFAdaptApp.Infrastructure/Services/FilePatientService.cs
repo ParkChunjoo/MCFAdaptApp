@@ -16,6 +16,7 @@ namespace MCFAdaptApp.Infrastructure.Services
     {
         private readonly string _patientFilePath;
         private List<Patient> _cachedPatients;
+        private readonly Random _random = new Random();
 
         /// <summary>
         /// Initializes a new instance of the FilePatientService
@@ -26,7 +27,8 @@ namespace MCFAdaptApp.Infrastructure.Services
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Initializing FilePatientService");
 
             // Use provided path or default to the specified location
-            _patientFilePath = patientFilePath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "MCFAaptData", "CBCTProjections", "patient_list.txt");
+            string baseDir = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../"));
+            _patientFilePath = patientFilePath ?? Path.Combine(baseDir, "MCFAaptData", "CBCTProjections", "patient_list.txt");
 
             // Ensure the directory exists
             var directory = Path.GetDirectoryName(_patientFilePath);
@@ -79,13 +81,12 @@ namespace MCFAdaptApp.Infrastructure.Services
                     if (parts.Length >= 3)
                     {
                         // 현재 날짜를 기준으로 임의의 날짜/시간 생성 (최근 30일 이내)
-                        var random = new Random();
-                        var daysAgo = random.Next(0, 30); // 0-30일 전
-                        var hoursAgo = random.Next(0, 24); // 0-24시간 전
-                        var minutesAgo = random.Next(0, 60); // 0-60분 전
+                        var daysAgo = _random.Next(0, 30); // 0-30일 전
+                        var hoursAgo = _random.Next(0, 24); // 0-24시간 전
+                        var minutesAgo = _random.Next(0, 60); // 0-60분 전
 
                         var lastModified = DateTime.Now.AddDays(-daysAgo).AddHours(-hoursAgo).AddMinutes(-minutesAgo);
-                        var lastCBCTScanTime = lastModified.AddDays(-random.Next(0, 7)); // 수정일보다 0-7일 전
+                        var lastCBCTScanTime = lastModified.AddDays(-_random.Next(0, 7)); // 수정일보다 0-7일 전
 
                         var patient = new Patient
                         {
@@ -146,9 +147,8 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// </summary>
         private DateTime? GetRandomDateOfBirth()
         {
-            var random = new Random();
-            var yearsAgo = random.Next(20, 90); // 20-90세
-            var daysVariation = random.Next(0, 365); // 연도 내 임의의 날짜
+            var yearsAgo = _random.Next(20, 90); // 20-90세
+            var daysVariation = _random.Next(0, 365); // 연도 내 임의의 날짜
 
             return DateTime.Now.AddYears(-yearsAgo).AddDays(-daysVariation);
         }
@@ -161,7 +161,8 @@ namespace MCFAdaptApp.Infrastructure.Services
             try
             {
                 // 환자 디렉토리 경로 생성
-                string patientDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "MCFAaptData", "PatientData", patient.PatientId);
+                string baseDir = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../"));
+                string patientDirectory = Path.Combine(baseDir, "MCFAaptData", "PatientData", patient.PatientId);
 
                 // 디렉토리가 없으면 생성
                 if (!Directory.Exists(patientDirectory))
@@ -181,8 +182,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                 }
 
                 // 임의의 AnatomyModel 및 ReferencePlan 데이터 생성
-                var random = new Random();
-                var anatomyModelCount = random.Next(1, 3); // 1-2개의 AnatomyModel
+                var anatomyModelCount = _random.Next(1, 3); // 1-2개의 AnatomyModel
 
                 var planInfoLines = new List<string>();
 
@@ -192,7 +192,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                     string anatomyModelName = $"{patient.FirstName} {patient.LastName} Anatomy model{(anatomyModelCount > 1 ? i.ToString() : "")}";
 
                     // ReferencePlan 개수 결정 (1-2개)
-                    int referencePlanCount = random.Next(1, 3);
+                    int referencePlanCount = _random.Next(1, 3);
 
                     // ReferencePlan 이름 생성
                     var referencePlans = new List<string>();
@@ -226,7 +226,8 @@ namespace MCFAdaptApp.Infrastructure.Services
             try
             {
                 // PlanInfo.txt 파일 경로
-                string planInfoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "MCFAaptData", "PatientData", patientId, "PlanInfo.txt");
+                string baseDir = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../"));
+                string planInfoPath = Path.Combine(baseDir, "MCFAaptData", "PatientData", patientId, "PlanInfo.txt");
 
                 // 파일이 존재하는지 확인
                 if (!File.Exists(planInfoPath))

@@ -593,8 +593,6 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 // Register 탭으로 이동하는 이벤트 발생
                 OnNavigateToRegister(SelectedPatient.PatientId);
 
-                // 비동기 작업 추가
-                await Task.Delay(100); // 최소한의 비동기 작업 추가
 
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Navigation to Register tab completed");
             }

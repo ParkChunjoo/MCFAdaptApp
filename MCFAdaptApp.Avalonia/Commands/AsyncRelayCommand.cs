@@ -71,7 +71,7 @@ namespace MCFAdaptApp.Avalonia.Commands
         /// </summary>
         public void RaiseCanExecuteChanged()
         {
-            Dispatcher.UIThread.Post(() => CanExecuteChanged?.Invoke(this, EventArgs.Empty));
+            CommandHelper.RaiseCanExecuteChanged(this, CanExecuteChanged);
         }
 
         /// <summary>
