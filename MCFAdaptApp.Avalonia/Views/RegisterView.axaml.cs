@@ -14,11 +14,11 @@ namespace MCFAdaptApp.Avalonia.Views
         {
             InitializeComponent();
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] RegisterView initialized");
-            
+
             // Set DataContext
-            DataContext = App.Current.Services.GetService<RegisterViewModel>() ?? 
+            DataContext = App.Current.Services.GetService<RegisterViewModel>() ??
                           new RegisterViewModel(App.Current.Services.GetService<IDicomService>());
-            
+
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] RegisterView DataContext set to RegisterViewModel");
         }
 

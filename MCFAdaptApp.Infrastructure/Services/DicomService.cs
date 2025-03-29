@@ -22,7 +22,7 @@ namespace MCFAdaptApp.Infrastructure.Services
         {
             // Set the base path to the MCFAaptData directory in the project folder
             _basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "MCFAaptData", "Dcm");
-            
+
             // fo-dicom 초기화
             new DicomSetupBuilder()
                 .RegisterServices(s => s.AddFellowOakDicom())
@@ -37,15 +37,15 @@ namespace MCFAdaptApp.Infrastructure.Services
         public async Task<ReferenceCT> LoadCBCTAsync(string patientId)
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading CBCT DICOM files for patient: {patientId}");
-            
+
             string cbctPath = Path.Combine(_basePath, _cbctFolder);
-            
+
             if (!Directory.Exists(cbctPath))
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] CBCT directory not found: {cbctPath}");
                 return null;
             }
-            
+
             return await LoadDicomFilesAsync(cbctPath, patientId, "CBCT");
         }
 
@@ -57,15 +57,15 @@ namespace MCFAdaptApp.Infrastructure.Services
         public async Task<ReferenceCT> LoadReferenceCTAsync(string patientId)
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading Reference CT DICOM files for patient: {patientId}");
-            
+
             string planDataPath = Path.Combine(_basePath, _planDataFolder);
-            
+
             if (!Directory.Exists(planDataPath))
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] PlanData directory not found: {planDataPath}");
                 return null;
             }
-            
+
             return await LoadDicomFilesAsync(planDataPath, patientId, "ReferenceCT");
         }
 
@@ -81,26 +81,26 @@ namespace MCFAdaptApp.Infrastructure.Services
             try
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Searching for DICOM files in: {directoryPath}");
-                
+
                 // 디렉토리에서 모든 DICOM 파일 찾기
-                var dicomFiles = await Task.Run(() => 
+                var dicomFiles = await Task.Run(() =>
                 {
                     return Directory.GetFiles(directoryPath, "*.dcm", SearchOption.AllDirectories)
                         .Union(Directory.GetFiles(directoryPath, "*.DCM", SearchOption.AllDirectories))
                         .ToList();
                 });
-                
+
                 if (dicomFiles.Count == 0)
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] No DICOM files found in: {directoryPath}");
                     return null;
                 }
-                
+
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Found {dicomFiles.Count} DICOM files");
-                
+
                 // 첫 번째 DICOM 파일을 로드하여 메타데이터 확인
                 var firstDicom = await Task.Run(() => DicomFile.Open(dicomFiles[0]));
-                
+
                 // ReferenceCT 객체 생성
                 var referenceCT = new ReferenceCT
                 {
@@ -112,19 +112,19 @@ namespace MCFAdaptApp.Infrastructure.Services
                     PatientId = patientId,
                     Type = type
                 };
-                
+
                 // DICOM 메타데이터에서 이미지 정보 추출
                 if (firstDicom != null)
                 {
                     try
                     {
                         var dataset = firstDicom.Dataset;
-                        
+
                         // 이미지 크기 정보 추출
                         referenceCT.Width = dataset.GetValue<ushort>(DicomTag.Columns, 0);
                         referenceCT.Height = dataset.GetValue<ushort>(DicomTag.Rows, 0);
                         referenceCT.Depth = dicomFiles.Count; // 슬라이스 수
-                        
+
                         // 픽셀 간격 정보 추출
                         if (dataset.Contains(DicomTag.PixelSpacing))
                         {
@@ -135,7 +135,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                                 referenceCT.PixelSpacingY = pixelSpacing[1];
                             }
                         }
-                        
+
                         // 슬라이스 두께 정보 추출
                         if (dataset.Contains(DicomTag.SliceThickness))
                         {
@@ -147,7 +147,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error extracting DICOM metadata: {ex.Message}");
                     }
                 }
-                
+
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Successfully loaded {type} for patient: {patientId}");
                 return referenceCT;
             }
@@ -158,4 +158,4 @@ namespace MCFAdaptApp.Infrastructure.Services
             }
         }
     }
-} 
+}

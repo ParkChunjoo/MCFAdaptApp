@@ -52,7 +52,7 @@ namespace MCFAdaptApp.Avalonia.Commands
         /// Event raised when the ability to execute the command changes
         /// </summary>
         public event EventHandler? CanExecuteChanged;
-        
+
         /// <summary>
         /// 명령의 CanExecute 상태가 변경되었음을 알립니다.
         /// </summary>

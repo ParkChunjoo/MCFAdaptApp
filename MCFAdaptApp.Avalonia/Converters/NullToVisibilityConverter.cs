@@ -11,7 +11,7 @@ namespace MCFAdaptApp.Avalonia.Converters
         {
             bool isNull = value == null;
             bool invert = false;
-            
+
             // Check if parameter indicates inversion
             if (parameter != null)
             {
@@ -24,13 +24,13 @@ namespace MCFAdaptApp.Avalonia.Converters
                     invert = boolParam;
                 }
             }
-            
+
             // Return visibility based on null check and inversion
             if (invert)
             {
                 return isNull;
             }
-            
+
             return !isNull;
         }
 

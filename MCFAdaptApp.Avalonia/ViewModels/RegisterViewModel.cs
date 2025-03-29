@@ -128,7 +128,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         public RegisterViewModel(IDicomService dicomService)
         {
             _dicomService = dicomService ?? throw new ArgumentNullException(nameof(dicomService));
-            
+
             // 명령 초기화
             LoadDicomFilesCommand = new AsyncRelayCommand(LoadDicomFilesAsync, () => !IsLoading);
         }
@@ -152,7 +152,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
 
                 // CBCT 로드
                 CBCT = await _dicomService.LoadCBCTAsync(PatientId);
-                
+
                 // 참조 CT 로드
                 ReferenceCT = await _dicomService.LoadReferenceCTAsync(PatientId);
 

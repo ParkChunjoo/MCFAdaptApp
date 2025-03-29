@@ -133,15 +133,15 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         public LoginViewModel(IAuthenticationService? authService = null)
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Initializing LoginViewModel");
-            
+
             // Dependency injection or create default service
             _authService = authService ?? new SimpleAuthenticationService();
-            
+
             // Initialize commands
             LoginCommand = new AsyncRelayCommand(LoginAsync, CanLogin);
             ExitCommand = new RelayCommand(ExitApplication);
             TogglePasswordVisibilityCommand = new RelayCommand(TogglePasswordVisibility);
-            
+
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] LoginViewModel initialized");
         }
 
@@ -168,7 +168,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login attempt for user: {UserId}");
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Password length: {Password?.Length ?? 0}");
-            
+
             try
             {
                 IsLoading = true;
@@ -178,26 +178,26 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Calling AuthenticateAsync with UserId: '{UserId}' and Password: '{Password}'");
                 var isAuthenticated = await _authService.AuthenticateAsync(UserId, Password ?? string.Empty);
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Authentication result: {isAuthenticated}");
-                
+
                 if (isAuthenticated)
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login successful");
-                    
+
                     // Navigate to patient selection screen
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating SelectPatientView");
-                    
+
                     // Create the patient view model directly
                     var viewModel = new SelectPatientViewModel(new FilePatientService());
-                    
+
                     // Create and show the new patient view
                     var patientView = new SelectPatientView(viewModel);
-                    
+
                     // Initialize view properties
                     patientView.Width = 1200;
                     patientView.Height = 800;
                     patientView.WindowStartupLocation = global::Avalonia.Controls.WindowStartupLocation.CenterScreen;
                     patientView.WindowState = global::Avalonia.Controls.WindowState.Maximized;
-                    
+
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Showing SelectPatientView");
 
                     // Set the patient view as the main window
@@ -205,16 +205,16 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     {
                         // Get the current login window
                         var currentWindow = desktop.MainWindow;
-                        
+
                         // Set the patient view as the main window
                         desktop.MainWindow = patientView;
-                        
+
                         // Show the patient view
                         patientView.Show();
-                        
+
                         // Close the login window
                         currentWindow?.Close();
-                        
+
                         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Main window switched to SelectPatientView");
                     }
                     else

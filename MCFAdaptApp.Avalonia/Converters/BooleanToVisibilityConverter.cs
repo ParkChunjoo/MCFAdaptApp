@@ -16,10 +16,10 @@ namespace MCFAdaptApp.Avalonia.Converters
                 {
                     boolValue = !boolValue;
                 }
-                
+
                 return boolValue;
             }
-            
+
             return false;
         }
 
@@ -28,16 +28,16 @@ namespace MCFAdaptApp.Avalonia.Converters
             if (value is bool visibility)
             {
                 bool result = visibility;
-                
+
                 // If parameter is provided and is "Invert", invert the result
                 if (parameter is string param && param == "Invert")
                 {
                     result = !result;
                 }
-                
+
                 return result;
             }
-            
+
             return false;
         }
     }

@@ -57,4 +57,4 @@ namespace MCFAdaptApp.Domain.Models
         /// </summary>
         public string Type { get; set; }
     }
-} 
+}

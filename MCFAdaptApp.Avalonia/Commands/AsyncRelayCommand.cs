@@ -54,7 +54,7 @@ namespace MCFAdaptApp.Avalonia.Commands
             {
                 _isExecuting = true;
                 RaiseCanExecuteChanged();
-                
+
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] AsyncRelayCommand executing");
                 await _execute();
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] AsyncRelayCommand completed");

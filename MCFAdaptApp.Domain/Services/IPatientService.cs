@@ -24,4 +24,4 @@ namespace MCFAdaptApp.Domain.Services
         /// </summary>
         Task<List<AnatomyModel>> GetAnatomyModelsAsync(string patientId);
     }
-} 
+}

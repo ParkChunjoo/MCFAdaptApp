@@ -12,9 +12,9 @@ namespace MCFAdaptApp.Avalonia
     public partial class App : global::Avalonia.Application
     {
         private ServiceProvider? _serviceProvider;
-        
+
         public static new App? Current => global::Avalonia.Application.Current as App;
-        
+
         public IServiceProvider? Services => _serviceProvider;
 
         public override void Initialize()
@@ -31,10 +31,10 @@ namespace MCFAdaptApp.Avalonia
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Application starting up");
-                
+
                 var loginView = _serviceProvider.GetService<LoginView>() ?? throw new InvalidOperationException("Failed to resolve LoginView from service provider");
                 desktop.MainWindow = loginView;
-                
+
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login view displayed");
             }
 

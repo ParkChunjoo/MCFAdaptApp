@@ -15,4 +15,4 @@ namespace MCFAdaptApp.Domain.Services
         /// <returns>True if authentication is successful, false otherwise</returns>
         Task<bool> AuthenticateAsync(string userId, string password);
     }
-} 
+}

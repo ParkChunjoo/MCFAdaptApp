@@ -32,4 +32,4 @@ namespace MCFAdaptApp.Domain.Services
         /// <returns>로드된 ReferenceCT 객체</returns>
         Task<ReferenceCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type);
     }
-} 
+}

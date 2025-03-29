@@ -22,13 +22,13 @@ namespace MCFAdaptApp.Infrastructure.Services
         public Task<bool> AuthenticateAsync(string userId, string password)
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Authentication attempt for user: {userId}");
-            
+
             // Simple authentication logic for demonstration
             var isAuthenticated = userId == VALID_USER_ID && password == VALID_PASSWORD;
-            
+
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Authentication result: {(isAuthenticated ? "Success" : "Failure")}");
-            
+
             return Task.FromResult(isAuthenticated);
         }
     }
-} 
+}
