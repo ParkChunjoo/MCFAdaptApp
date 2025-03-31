@@ -5,26 +5,183 @@
         xmlns:views="using:MCFAdaptApp.Avalonia.Views"
         mc:Ignorable="d"
         x:Class="MCFAdaptApp.Avalonia.MainWindow"
-        Title="MCF Adapt App" Height="768" Width="1024"
-        WindowStartupLocation="CenterScreen">
-    
-    <Grid>
-        <TabControl x:Name="MainTabControl">
-            <TabItem Header="Patient">
-                <views:SelectPatientView />
-            </TabItem>
-            <TabItem Header="Register">
-                <views:RegisterView />
-            </TabItem>
-            <TabItem Header="Contour">
-                <TextBlock Text="Contour View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </TabItem>
-            <TabItem Header="Plan">
-                <TextBlock Text="Plan View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </TabItem>
-            <TabItem Header="Review">
-                <TextBlock Text="Review View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </TabItem>
-        </TabControl>
-    </Grid>
+        Title="MCF-Adapt App"
+        MinHeight="800" MinWidth="1200"
+        Width="1200" Height="800"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="#FF1E1E1E"
+        SystemDecorations="None">
+
+	<Window.Styles>
+		<!-- TabItem style -->
+		<Style Selector="TabItem">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="Foreground" Value="#AAAAAA"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Padding" Value="15,0"/>
+			<Setter Property="FontSize" Value="16"/>
+			<Setter Property="FontWeight" Value="Normal"/>
+			<Setter Property="FontFamily" Value="Segoe UI"/>
+			<Setter Property="Height" Value="35"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="Margin" Value="0"/>
+			<Setter Property="Cursor" Value="Hand"/>
+		</Style>
+
+		<Style Selector="TabItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+
+		<!-- Active TabItem style -->
+		<Style Selector="TabItem:selected">
+			<Setter Property="Foreground" Value="#FF007ACC"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="BorderBrush" Value="Transparent"/>
+		</Style>
+
+		<Style Selector="TabItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Foreground" Value="#FF007ACC"/>
+		</Style>
+
+		<!-- Hide selection indicator -->
+		<Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+			<Setter Property="IsVisible" Value="False"/>
+		</Style>
+	</Window.Styles>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/> <!-- Header bar -->
+			<RowDefinition Height="Auto"/> <!-- Patient info and tabs bar -->
+			<RowDefinition Height="Auto"/> <!-- Separator -->
+			<RowDefinition Height="*"/> <!-- Content -->
+		</Grid.RowDefinitions>
+
+		<!-- Header bar -->
+		<Grid Grid.Row="0" Background="#FF1E1E1E" Name="HeaderBar" Height="30">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+
+			<!-- Center text - this area will be draggable -->
+			<TextBlock Grid.Column="0" Text="Not for clinical use - evaluation use only"
+					 Foreground="#AAAAAA" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe UI"/>
+
+			<!-- Window controls -->
+			<StackPanel Grid.Column="1" Orientation="Horizontal">
+				<Button Content="_" Foreground="White" Background="Transparent" BorderThickness="0"
+					  Name="MinimizeButton" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40"
+					  Height="30" FontFamily="Segoe UI" FontSize="14"/>
+				<Button Content="□" Foreground="White" Background="Transparent" BorderThickness="0"
+					  Name="RestoreMaximizeButton" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40"
+					  Height="30" FontFamily="Segoe UI" FontSize="14"/>
+				<Button Content="X" Foreground="Red" Background="Transparent" BorderThickness="0"
+					  Name="CloseButton" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="40"
+					  Height="30" FontFamily="Segoe UI" FontSize="14"/>
+			</StackPanel>
+		</Grid>
+
+		<!-- Patient info and tabs bar -->
+		<Grid Grid.Row="1" Background="#FF1E1E1E">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/> <!-- Patient Info -->
+				<ColumnDefinition Width="*"/> <!-- Tabs -->
+			</Grid.ColumnDefinitions>
+
+			<!-- Patient Info panel (left side) -->
+			<StackPanel Grid.Column="0" Orientation="Horizontal" Name="PatientInfoPanel" IsVisible="False" Margin="10,5,10,5">
+				<!-- Patient Initials Box -->
+				<Border Width="40" Height="40" Background="#FF252526">
+					<TextBlock x:Name="PatientInitialsText" Text="RM" Foreground="White" FontSize="20"
+							 HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+				</Border>
+
+				<!-- Patient Info Text -->
+				<StackPanel Orientation="Vertical" Margin="10,0,0,0" Name="PatientInfoTextPanel">
+					<TextBlock x:Name="PatientNameText" Text="Moore Robert"
+							 Foreground="White" FontSize="14" FontWeight="Normal"/>
+					<TextBlock x:Name="PatientDetailsText" Text="10/16/78"
+							 Foreground="Gray" FontSize="12"/>
+					<TextBlock x:Name="PatientIdText" Text="ID: 187584"
+							 Foreground="Gray" FontSize="12"/>
+				</StackPanel>
+
+				<!-- Hidden elements for reference data -->
+				<TextBlock x:Name="AnatomyModelText" Text="" Opacity="0" IsVisible="False"/>
+				<TextBlock x:Name="ReferencePlanText" Text="" Opacity="0" IsVisible="False"/>
+			</StackPanel>
+
+			<!-- MCF-Adapt Logo Text (visible when patient info is hidden) -->
+			<TextBlock Grid.Column="0" x:Name="LogoText" Text="MCF-Adapt" Foreground="White" FontSize="15"
+					 Margin="15,5" VerticalAlignment="Center" FontWeight="SemiBold" FontFamily="Segoe UI"/>
+
+			<!-- Tab Items (right side) -->
+			<TabControl Grid.Column="1" x:Name="MainTabControl" TabStripPlacement="Top"
+					  Margin="0,0,0,0" Padding="0" BorderThickness="0">
+				<TabControl.Styles>
+					<!-- Override TabControl template to hide content area -->
+					<Style Selector="TabControl">
+						<Setter Property="Template">
+							<ControlTemplate>
+								<DockPanel>
+									<Border DockPanel.Dock="Top" BorderThickness="0"
+										  Padding="0" Margin="0">
+										<ItemsPresenter Name="PART_ItemsPresenter"
+													  ItemsPanel="{TemplateBinding ItemsPanel}" 
+													  HorizontalAlignment="Right"/>
+									</Border>
+									<ContentPresenter Name="PART_SelectedContentHost"
+													HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+													VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+													Content="{TemplateBinding SelectedContent}"
+													ContentTemplate="{TemplateBinding SelectedContentTemplate}"/>
+								</DockPanel>
+							</ControlTemplate>
+						</Setter>
+					</Style>
+				</TabControl.Styles>
+
+				<TabItem Header="Patient" Name="PatientTabItem">
+					<Panel/>
+				</TabItem>
+				<TabItem Header="Register" Name="RegisterTabItem">
+					<Panel/>
+				</TabItem>
+				<TabItem Header="Contour" Name="ContourTabItem">
+					<Panel/>
+				</TabItem>
+				<TabItem Header="Plan" Name="PlanTabItem">
+					<Panel/>
+				</TabItem>
+				<TabItem Header="Review" Name="ReviewTabItem">
+					<Panel/>
+				</TabItem>
+			</TabControl>
+		</Grid>
+
+		<!-- Separator line -->
+		<Border Grid.Row="2" Height="1" Background="#FF3E3E42" Margin="0,0,0,0"/>
+
+		<!-- Main content area -->
+		<ContentControl Grid.Row="3" x:Name="ContentContainer">
+			<!-- Content will be set programmatically based on selected tab -->
+			<Panel x:Name="ContentPanel">
+				<views:SelectPatientView x:Name="PatientView" IsVisible="True"/>
+				<views:RegisterView x:Name="RegisterView" IsVisible="False"/>
+				<Grid x:Name="ContourView" IsVisible="False">
+					<TextBlock Text="Contour View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				</Grid>
+				<Grid x:Name="PlanView" IsVisible="False">
+					<TextBlock Text="Plan View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				</Grid>
+				<Grid x:Name="ReviewView" IsVisible="False">
+					<TextBlock Text="Review View" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				</Grid>
+			</Panel>
+		</ContentControl>
+	</Grid>
 </Window>

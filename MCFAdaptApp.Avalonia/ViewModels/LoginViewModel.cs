@@ -183,39 +183,33 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login successful");
                     
-                    // Navigate to patient selection screen
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating SelectPatientView");
+                    // Navigate to main window with patient view
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating MainWindow");
                     
                     // Create the patient view model directly
                     var viewModel = new SelectPatientViewModel(new FilePatientService());
                     
-                    // Create and show the new patient view
-                    var patientView = new SelectPatientView(viewModel);
+                    // Create and show the new main window with the patient view model
+                    var mainWindow = new MainWindow(viewModel);
                     
-                    // Initialize view properties
-                    patientView.Width = 1200;
-                    patientView.Height = 800;
-                    patientView.WindowStartupLocation = global::Avalonia.Controls.WindowStartupLocation.CenterScreen;
-                    patientView.WindowState = global::Avalonia.Controls.WindowState.Maximized;
-                    
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Showing SelectPatientView");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Showing MainWindow");
 
-                    // Set the patient view as the main window
+                    // Set the main window as the application's main window
                     if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                     {
                         // Get the current login window
                         var currentWindow = desktop.MainWindow;
                         
-                        // Set the patient view as the main window
-                        desktop.MainWindow = patientView;
+                        // Set the main window as the application's main window
+                        desktop.MainWindow = mainWindow;
                         
-                        // Show the patient view
-                        patientView.Show();
+                        // Show the main window
+                        mainWindow.Show();
                         
                         // Close the login window
                         currentWindow?.Close();
                         
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Main window switched to SelectPatientView");
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Main window switched to MainWindow");
                     }
                     else
                     {
@@ -256,6 +250,8 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// </summary>
         private void ExitApplication(object parameter)
         {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] ExitCommand executed, shutting down application");
+            
             if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.Shutdown();
@@ -263,7 +259,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
-        /// Event raised when a property value changes
+        /// Event that is raised when a property changes
         /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
 

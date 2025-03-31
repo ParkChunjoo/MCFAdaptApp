@@ -18,6 +18,9 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private ReferenceCT? _cbct;
         private ReferenceCT? _referenceCT;
         private string _patientId = string.Empty;
+        private Patient? _patient;
+        private AnatomyModel? _selectedAnatomyModel;
+        private ReferencePlan? _selectedReferencePlan;
         private bool _isLoading;
         private string? _statusMessage;
         private bool _hasError;
@@ -58,6 +61,49 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             set
             {
                 _patientId = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// 환자 정보
+        /// </summary>
+        public Patient? Patient
+        {
+            get => _patient;
+            set
+            {
+                _patient = value;
+                if (value != null)
+                {
+                    PatientId = value.PatientId;
+                }
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// 선택된 해부학적 모델
+        /// </summary>
+        public AnatomyModel? SelectedAnatomyModel
+        {
+            get => _selectedAnatomyModel;
+            set
+            {
+                _selectedAnatomyModel = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// 선택된 참조 계획
+        /// </summary>
+        public ReferencePlan? SelectedReferencePlan
+        {
+            get => _selectedReferencePlan;
+            set
+            {
+                _selectedReferencePlan = value;
                 OnPropertyChanged();
             }
         }
@@ -156,6 +202,15 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 // 참조 CT 로드
                 ReferenceCT = await _dicomService.LoadReferenceCTAsync(PatientId);
 
+                // If we have a selected reference plan but haven't loaded its CT yet,
+                // try to load it specifically
+                if (SelectedReferencePlan != null && ReferenceCT == null)
+                {
+                    // This is a placeholder for loading CT from a specific plan
+                    // You might want to modify your IDicomService to support this
+                    // ReferenceCT = await _dicomService.LoadReferenceCTFromPlanAsync(SelectedReferencePlan);
+                }
+
                 if (CBCT == null && ReferenceCT == null)
                 {
                     ErrorMessage = "DICOM 파일을 찾을 수 없습니다.";
@@ -199,6 +254,33 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         {
             PatientId = patientId;
             await LoadDicomFilesAsync();
+        }
+
+        /// <summary>
+        /// 환자 정보, 선택된 해부학적 모델 및 참조 계획 설정
+        /// </summary>
+        /// <param name="patient">환자 정보</param>
+        /// <param name="anatomyModel">선택된 해부학적 모델</param>
+        /// <param name="referencePlan">선택된 참조 계획</param>
+        public async Task InitializeAsync(Patient patient, AnatomyModel anatomyModel = null, ReferencePlan referencePlan = null)
+        {
+            // Log the full details of what we received
+            Console.WriteLine();
+            Console.WriteLine("[LOG] RegisterViewModel.InitializeAsync: Received data:");
+            Console.WriteLine($"[LOG] Patient: {patient?.PatientId ?? "null"} - {patient?.FirstName ?? ""} {patient?.LastName ?? ""}");
+            Console.WriteLine($"[LOG] AnatomyModel: {anatomyModel?.Name ?? "null"}");
+            Console.WriteLine($"[LOG] ReferencePlan: {referencePlan?.Name ?? "null"}");
+            Console.WriteLine();
+
+            Patient = patient;
+            SelectedAnatomyModel = anatomyModel;
+            SelectedReferencePlan = referencePlan;
+            
+            // If PatientId is set (from the Patient object), load DICOM files
+            if (!string.IsNullOrEmpty(PatientId))
+            {
+                await LoadDicomFilesAsync();
+            }
         }
 
         #region INotifyPropertyChanged
