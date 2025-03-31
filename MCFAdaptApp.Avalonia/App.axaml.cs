@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using MCFAdaptApp.Avalonia.Helpers;
 using MCFAdaptApp.Domain.Services;
 using MCFAdaptApp.Infrastructure.Services;
 using MCFAdaptApp.Avalonia.Views;
@@ -30,12 +31,12 @@ namespace MCFAdaptApp.Avalonia
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Application starting up");
+                LogHelper.Log("Application starting up");
                 
                 var loginView = _serviceProvider.GetService<LoginView>() ?? throw new InvalidOperationException("Failed to resolve LoginView from service provider");
                 desktop.MainWindow = loginView;
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login view displayed");
+                LogHelper.Log("Login view displayed");
             }
 
             base.OnFrameworkInitializationCompleted();

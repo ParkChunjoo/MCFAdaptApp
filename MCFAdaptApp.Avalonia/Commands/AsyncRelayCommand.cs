@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
+using MCFAdaptApp.Avalonia.Helpers;
 
 namespace MCFAdaptApp.Avalonia.Commands
 {
@@ -55,9 +56,9 @@ namespace MCFAdaptApp.Avalonia.Commands
                 _isExecuting = true;
                 RaiseCanExecuteChanged();
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] AsyncRelayCommand executing");
+                LogHelper.Log("AsyncRelayCommand executing");
                 await _execute();
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] AsyncRelayCommand completed");
+                LogHelper.Log("AsyncRelayCommand completed");
             }
             finally
             {
@@ -142,14 +143,14 @@ namespace MCFAdaptApp.Avalonia.Commands
                 _isExecuting = true;
                 RaiseCanExecuteChanged();
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] AsyncRelayCommand<{typeof(T).Name}> executing with parameter: {parameter}");
+                LogHelper.Log($"AsyncRelayCommand<{typeof(T).Name}> executing with parameter: {parameter}");
                 
                 if (parameter == null || parameter is T)
                 {
                     await _execute((T?)parameter);
                 }
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] AsyncRelayCommand<{typeof(T).Name}> completed");
+                LogHelper.Log($"AsyncRelayCommand<{typeof(T).Name}> completed");
             }
             finally
             {

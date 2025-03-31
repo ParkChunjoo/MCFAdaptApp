@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using MCFAdaptApp.Domain.Models;
 using MCFAdaptApp.Domain.Services;
+using MCFAdaptApp.Infrastructure.Helpers;
 
 namespace MCFAdaptApp.Infrastructure.Services
 {
@@ -23,7 +24,7 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// <param name="patientFilePath">Optional custom path to the patient data file</param>
         public FilePatientService(string patientFilePath = null)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Initializing FilePatientService");
+            LogHelper.Log("Initializing FilePatientService");
             
             // Use provided path or default to the specified location
             _patientFilePath = patientFilePath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "MCFAaptData", "CBCTProjections", "patient_list.txt");
@@ -32,11 +33,11 @@ namespace MCFAdaptApp.Infrastructure.Services
             var directory = Path.GetDirectoryName(_patientFilePath);
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating directory: {directory}");
+                LogHelper.Log($"Creating directory: {directory}");
                 Directory.CreateDirectory(directory);
             }
             
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Using patient file: {_patientFilePath}");
+            LogHelper.Log($"Using patient file: {_patientFilePath}");
         }
 
         /// <summary>
@@ -45,21 +46,21 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// <returns>A collection of patients</returns>
         public async Task<IEnumerable<Patient>> GetAllPatientsAsync()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] GetAllPatientsAsync called");
+            LogHelper.Log("GetAllPatientsAsync called");
             
             // Return cached data if available
             if (_cachedPatients != null)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Returning {_cachedPatients.Count} cached patients");
+                LogHelper.Log($"Returning {_cachedPatients.Count} cached patients");
                 return _cachedPatients;
             }
             
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading patients from file");
+            LogHelper.Log("Loading patients from file");
             
             // Create sample data if file doesn't exist
             if (!File.Exists(_patientFilePath))
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Patient file not found, creating sample data");
+                LogHelper.LogWarning($"Patient file not found, creating sample data");
                 //await CreateSampleDataAsync();
             }
             
@@ -108,12 +109,12 @@ namespace MCFAdaptApp.Infrastructure.Services
                 // Cache the results
                 _cachedPatients = patients;
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loaded {patients.Count} patients from file");
+                LogHelper.Log($"Loaded {patients.Count} patients from file");
                 return patients;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error loading patients: {ex.Message}");
+                LogHelper.LogError($"Error loading patients: {ex.Message}");
                 throw;
             }
         }
@@ -135,7 +136,7 @@ namespace MCFAdaptApp.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error getting patient by ID: {ex.Message}");
+                LogHelper.LogError($"Error getting patient by ID: {ex.Message}");
                 return null;
             }
         }
@@ -145,7 +146,7 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// </summary>
         private async Task CreateSampleDataAsync()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating sample patient data");
+            LogHelper.Log("Creating sample patient data");
             
             var samplePatients = new List<string>
             {
@@ -165,7 +166,7 @@ namespace MCFAdaptApp.Infrastructure.Services
             };
             
             await File.WriteAllLinesAsync(_patientFilePath, samplePatients);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Sample data created with {samplePatients.Count} patients");
+            LogHelper.Log($"Sample data created with {samplePatients.Count} patients");
         }
         
         /// <summary>
@@ -194,7 +195,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                 if (!Directory.Exists(patientDirectory))
                 {
                     Directory.CreateDirectory(patientDirectory);
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Created directory: {patientDirectory}");
+                    LogHelper.Log($"Created directory: {patientDirectory}");
                 }
                 
                 // PlanInfo.txt 파일 경로
@@ -203,7 +204,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                 // 파일이 이미 존재하면 생성하지 않음
                 if (File.Exists(planInfoPath))
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] PlanInfo.txt already exists for patient: {patient.PatientId}");
+                    LogHelper.Log($"PlanInfo.txt already exists for patient: {patient.PatientId}");
                     return;
                 }
                 
@@ -235,11 +236,11 @@ namespace MCFAdaptApp.Infrastructure.Services
                 
                 // 파일 작성
                 await File.WriteAllLinesAsync(planInfoPath, planInfoLines);
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Created PlanInfo.txt for patient: {patient.PatientId} with {planInfoLines.Count} anatomy models");
+                LogHelper.Log($"Created PlanInfo.txt for patient: {patient.PatientId} with {planInfoLines.Count} anatomy models");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error creating PlanInfo.txt for patient {patient.PatientId}: {ex.Message}");
+                LogHelper.LogError($"Error creating PlanInfo.txt for patient {patient.PatientId}: {ex.Message}");
             }
         }
 
@@ -258,11 +259,11 @@ namespace MCFAdaptApp.Infrastructure.Services
                 // 파일이 존재하는지 확인
                 if (!File.Exists(planInfoPath))
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] PlanInfo.txt not found for patient: {patientId}");
+                    LogHelper.LogWarning($"PlanInfo.txt not found for patient: {patientId}");
                     return models;
                 }
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading PlanInfo.txt for patient: {patientId}");
+                LogHelper.Log($"Loading PlanInfo.txt for patient: {patientId}");
                 
                 // 파일 읽기 - 비동기 작업을 Task.Run으로 래핑하여 UI 스레드 차단 방지
                 string[] lines = await Task.Run(() => File.ReadAllLines(planInfoPath));
@@ -286,7 +287,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                     bool modelExists = models.Any(m => m.Name == anatomyModelName);
                     if (modelExists)
                     {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Skipping duplicate AnatomyModel: {anatomyModelName}");
+                        LogHelper.LogWarning($"Skipping duplicate AnatomyModel: {anatomyModelName}");
                         continue;
                     }
                     
@@ -321,11 +322,11 @@ namespace MCFAdaptApp.Infrastructure.Services
                     models.Add(anatomyModel);
                 }
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loaded {models.Count} anatomy models for patient: {patientId}");
+                LogHelper.Log($"Loaded {models.Count} anatomy models for patient: {patientId}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error loading anatomy models for patient {patientId}: {ex.Message}");
+                LogHelper.LogError($"Error loading anatomy models for patient {patientId}: {ex.Message}");
             }
             
             return models;

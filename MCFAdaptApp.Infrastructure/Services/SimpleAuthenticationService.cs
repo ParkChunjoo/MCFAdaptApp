@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using MCFAdaptApp.Domain.Services;
 using MCFAdaptApp.Domain.Models;
+using MCFAdaptApp.Infrastructure.Helpers;
 
 namespace MCFAdaptApp.Infrastructure.Services
 {
@@ -21,12 +22,12 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// <returns>True if authentication is successful, false otherwise</returns>
         public Task<bool> AuthenticateAsync(string userId, string password)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Authentication attempt for user: {userId}");
+            LogHelper.Log($"Authentication attempt for user: {userId}");
             
             // Simple authentication logic for demonstration
             var isAuthenticated = userId == VALID_USER_ID && password == VALID_PASSWORD;
             
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Authentication result: {(isAuthenticated ? "Success" : "Failure")}");
+            LogHelper.Log($"Authentication result: {(isAuthenticated ? "Success" : "Failure")}");
             
             return Task.FromResult(isAuthenticated);
         }

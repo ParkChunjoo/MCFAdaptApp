@@ -13,6 +13,7 @@ using System.IO;
 using System.Collections.Concurrent;
 using Avalonia.Threading;
 using System.Collections.Generic;
+using MCFAdaptApp.Avalonia.Helpers;
 
 namespace MCFAdaptApp.Avalonia.ViewModels
 {
@@ -67,13 +68,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 // Immediately set AnatomyModels from cache if patient is not null
                 if (value != null && _anatomyModelCache.TryGetValue(value.PatientId, out var cachedModels))
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Setting AnatomyModels from cache immediately: {cachedModels.Count} models");
+                    LogHelper.Log($"Setting AnatomyModels from cache immediately: {cachedModels.Count} models");
                     value.AnatomyModels = cachedModels;
                 }
                 
                 // Notify UI of change
                 OnPropertyChanged();
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Patient selected: {value?.DisplayName ?? "None"}");
+                LogHelper.Log($"Patient selected: {value?.DisplayName ?? "None"}");
                 
                 // Update command execution status
                 (ViewDetailsCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
@@ -90,7 +91,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _isLoading = value;
                 OnPropertyChanged();
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading state changed: {value}");
+                LogHelper.Log($"Loading state changed: {value}");
                 // Update command execution status when loading state changes
                 (RefreshCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
                 (ViewDetailsCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
@@ -124,7 +125,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 
                 if (!string.IsNullOrEmpty(value))
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] ERROR: {value}");
+                    LogHelper.LogError(value);
                 }
             }
         }
@@ -205,7 +206,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// <param name="patientService">Optional patient service for dependency injection</param>
         public SelectPatientViewModel(IPatientService? patientService = null)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Initializing SelectPatientViewModel");
+            LogHelper.Log("Initializing SelectPatientViewModel");
             
             // Dependency injection or create default service
             _patientService = patientService ?? new FilePatientService();
@@ -221,7 +222,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             // Initialize properties
             ErrorMessage = string.Empty;
             
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] SelectPatientViewModel initialized");
+            LogHelper.Log("SelectPatientViewModel initialized");
             
             // Load patients when view model is created
             _ = InitializeAsync();
@@ -235,7 +236,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             // After loading patients, preload anatomy models immediately
             await PreloadAllAnatomyModelsAsync();
             
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Initialization complete with preloaded models");
+            LogHelper.Log("Initialization complete with preloaded models");
         }
         
         /// <summary>
@@ -246,7 +247,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         {
             try
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Starting preload of anatomy models for all patients");
+                LogHelper.Log("Starting preload of anatomy models for all patients");
                 
                 // Create tasks for all patients
                 var tasks = new List<Task>();
@@ -270,19 +271,19 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                                 // Add to cache
                                 var anatomyModels = new ObservableCollection<AnatomyModel>(models);
                                 _anatomyModelCache.TryAdd(patient.PatientId, anatomyModels);
-                                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Preloaded {anatomyModels.Count} anatomy models for patient: {patient.PatientId}");
+                                LogHelper.Log($"Preloaded {anatomyModels.Count} anatomy models for patient: {patient.PatientId}");
                             }
                             else
                             {
                                 // Create sample models if none found
                                 var sampleModels = CreateSampleModels(patient.PatientId);
                                 _anatomyModelCache.TryAdd(patient.PatientId, new ObservableCollection<AnatomyModel>(sampleModels));
-                                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Preloaded sample anatomy models for patient: {patient.PatientId}");
+                                LogHelper.Log($"Preloaded sample anatomy models for patient: {patient.PatientId}");
                             }
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error preloading for patient {patient.PatientId}: {ex.Message}");
+                            LogHelper.LogError($"Error preloading for patient {patient.PatientId}: {ex.Message}");
                         }
                     }));
                 }
@@ -296,11 +297,11 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     );
                 }
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Completed preloading anatomy models for all patients");
+                LogHelper.Log("Completed preloading anatomy models for all patients");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error in PreloadAllAnatomyModelsAsync: {ex.Message}");
+                LogHelper.LogError($"Error in PreloadAllAnatomyModelsAsync: {ex.Message}");
             }
         }
 
@@ -329,7 +330,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// </summary>
         public async Task LoadPatientsAsync()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading patients...");
+            LogHelper.Log("Loading patients...");
             
             try
             {
@@ -346,7 +347,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     Patients.Add(patient);
                 }
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loaded {Patients.Count} patients");
+                LogHelper.Log($"Loaded {Patients.Count} patients");
             }
             catch (Exception ex)
             {
@@ -366,7 +367,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             if (SelectedPatient == null)
                 return;
 
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Viewing details for patient: {SelectedPatient.DisplayName}");
+            LogHelper.Log($"Viewing details for patient: {SelectedPatient.DisplayName}");
             
             try
             {
@@ -386,14 +387,14 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 // For Avalonia, we'll use a dialog service or similar approach
                 
                 // Temporary message display - will be replaced with Avalonia dialog
-                Console.WriteLine($"Patient Details: {patient.DisplayName}\n" +
+                LogHelper.Log($"Patient Details: {patient.DisplayName}\n" +
                                  $"ID: {patient.PatientId}\n" +
                                  $"Date of Birth: {patient.DateOfBirth?.ToShortDateString() ?? "Not available"}\n" +
                                  $"Gender: {patient.Gender ?? "Not available"}");
                 
                 // TODO: Implement Avalonia dialog for patient details
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Displayed details for patient: {patient.DisplayName}");
+                LogHelper.Log($"Displayed details for patient: {patient.DisplayName}");
             }
             catch (Exception ex)
             {
@@ -410,7 +411,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// </summary>
         private void ShowRecentPatients()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Sorting patients by recent CBCT scan time");
+            LogHelper.Log("Sorting patients by recent CBCT scan time");
             
             var sortedPatients = new ObservableCollection<Patient>(
                 Patients.OrderByDescending(p => p.LastCBCTScanTime ?? DateTime.MinValue)
@@ -424,7 +425,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// </summary>
         private void ShowAllPatients()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Sorting patients by last name");
+            LogHelper.Log("Sorting patients by last name");
             
             var sortedPatients = new ObservableCollection<Patient>(
                 Patients.OrderBy(p => p.LastName)
@@ -440,11 +441,11 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         {
             if (string.IsNullOrEmpty(patientId))
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] LoadAnatomyModelsAsync: Invalid patient ID");
+                LogHelper.Log("LoadAnatomyModelsAsync: Invalid patient ID");
                 return;
             }
             
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] LoadAnatomyModelsAsync called for patient: {patientId}");
+            LogHelper.Log($"LoadAnatomyModelsAsync called for patient: {patientId}");
             
             try
             {
@@ -460,12 +461,12 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 }
                 else
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Patient not found with ID: {patientId}");
+                    LogHelper.Log($"Patient not found with ID: {patientId}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error loading anatomy models: {ex.Message}");
+                LogHelper.LogError($"Error loading anatomy models: {ex.Message}");
                 ErrorMessage = $"Error loading anatomy models: {ex.Message}";
             }
             finally
@@ -481,11 +482,11 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         {
             if (patient == null)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] LoadPatientPlansAsync: Patient is null");
+                LogHelper.Log("LoadPatientPlansAsync: Patient is null");
                 return;
             }
                 
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Starting to load plans for patient: {patient.PatientId}");
+            LogHelper.Log($"Starting to load plans for patient: {patient.PatientId}");
             
             try
             {
@@ -493,7 +494,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 if (_anatomyModelCache.TryGetValue(patient.PatientId, out var cachedModels) && 
                     cachedModels != null && cachedModels.Count > 0)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Using cached anatomy models for patient: {patient.PatientId}, Count: {cachedModels.Count}");
+                    LogHelper.Log($"Using cached anatomy models for patient: {patient.PatientId}, Count: {cachedModels.Count}");
                     
                     // Set models immediately without async delay for best responsiveness
                     patient.AnatomyModels = cachedModels;
@@ -502,7 +503,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     await Dispatcher.UIThread.InvokeAsync(() => 
                     {
                         // Update the patient instance's AnatomyModels directly
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Updated UI with cached models");
+                        LogHelper.Log("Updated UI with cached models");
                         OnPropertyChanged(nameof(SelectedPatient));
                         
                         // Also explicitly notify about AnatomyModels property
@@ -513,7 +514,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 }
                 
                 // Not in cache, need to load from service
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] No cached models found, loading from service");
+                LogHelper.Log("No cached models found, loading from service");
                 
                 // For better UX, show loading indicator and immediately create a placeholder
                 // to show something right away
@@ -523,7 +524,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 // Force UI update with placeholder data immediately
                 await Dispatcher.UIThread.InvokeAsync(() => 
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Updated UI with placeholder models");
+                    LogHelper.Log("Updated UI with placeholder models");
                     OnPropertyChanged(nameof(SelectedPatient));
                     OnPropertyChanged("SelectedPatient.AnatomyModels");
                 }, DispatcherPriority.Render);
@@ -535,7 +536,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 {
                     // Already showing placeholder data, so just add to cache
                     _anatomyModelCache.TryAdd(patient.PatientId, new ObservableCollection<AnatomyModel>(placeholderModels));
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Using placeholder models as no models found from service");
+                    LogHelper.Log("Using placeholder models as no models found from service");
                     return;
                 }
                 
@@ -551,7 +552,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         patient.AnatomyModels = anatomyModels;
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Updated UI with real models from service");
+                        LogHelper.Log("Updated UI with real models from service");
                         
                         // Notify about both properties
                         OnPropertyChanged(nameof(SelectedPatient));
@@ -559,11 +560,11 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     }, DispatcherPriority.Render);
                 }
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loaded {anatomyModels.Count} anatomy models for patient: {patient.PatientId}");
+                LogHelper.Log($"Loaded {anatomyModels.Count} anatomy models for patient: {patient.PatientId}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error loading PlanInfo.txt: {ex.Message}");
+                LogHelper.LogError($"Error loading PlanInfo.txt: {ex.Message}");
                 ErrorMessage = $"Error loading patient plans: {ex.Message}";
             }
         }
@@ -571,7 +572,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         // Helper method to create sample models for testing
         private List<AnatomyModel> CreateSampleModels(string patientId)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating sample anatomy models for patient: {patientId}");
+            LogHelper.Log($"Creating sample anatomy models for patient: {patientId}");
             
             var models = new List<AnatomyModel>();
             
@@ -622,7 +623,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 IsLoading = true;
                 ClearError();
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Navigating to Register tab for patient: {SelectedPatient.PatientId}");
+                LogHelper.Log($"Navigating to Register tab for patient: {SelectedPatient.PatientId}");
                 
                 // Register 탭으로 이동하는 이벤트 발생
                 OnNavigateToRegister(SelectedPatient.PatientId);
@@ -630,11 +631,11 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 // 비동기 작업 추가
                 await Task.Delay(100); // 최소한의 비동기 작업 추가
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Navigation to Register tab completed");
+                LogHelper.Log("Navigation to Register tab completed");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error navigating to Register tab: {ex.Message}");
+                LogHelper.LogError($"Error navigating to Register tab: {ex.Message}");
                 ErrorMessage = $"Register 탭으로 이동 중 오류 발생: {ex.Message}";
             }
             finally
@@ -668,7 +669,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         {
             if (referencePlan == null)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] SelectReferencePlanAsync: ReferencePlan is null");
+                LogHelper.Log("SelectReferencePlanAsync: ReferencePlan is null");
                 ErrorMessage = "No reference plan selected.";
                 return;
             }
@@ -676,18 +677,18 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             try
             {
                 // Update UI to show loading
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Reference plan selected: {referencePlan.Name}");
+                LogHelper.Log($"Reference plan selected: {referencePlan.Name}");
                 ShowLoadingOverlay = true;
                 ClearError();
                 
                 // First phase - Loading CBCT projections
                 LoadingStatusText = "Loading CBCT Projections...";
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading CBCT Projections...");
+                LogHelper.Log("Loading CBCT Projections...");
                 await Task.Delay(2000); // Simulate work for 2 seconds
                 
                 // Second phase - Loading reference plan data
                 LoadingStatusText = "Loading Reference Plan Data...";
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading Reference Plan Data...");
+                LogHelper.Log("Loading Reference Plan Data...");
                 await Task.Delay(2000); // Simulate work for 2 seconds
                 
                 // Hide loading overlay
@@ -695,23 +696,23 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 
                 // Store selected reference plan if needed
                 // This could be used in the Register tab
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading complete, storing reference plan: {referencePlan.Name}");
+                LogHelper.Log($"Loading complete, storing reference plan: {referencePlan.Name}");
                 
                 // Finally, navigate to the Register tab (ensure patient is selected)
                 if (SelectedPatient != null)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Triggering navigation to Register tab for patient: {SelectedPatient.PatientId}");
+                    LogHelper.Log($"Triggering navigation to Register tab for patient: {SelectedPatient.PatientId}");
                     OnNavigateToRegister(SelectedPatient.PatientId);
                 }
                 else
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] WARNING: Cannot navigate - SelectedPatient is null");
+                    LogHelper.Log("WARNING: Cannot navigate - SelectedPatient is null");
                     ErrorMessage = "No patient is selected. Please select a patient.";
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error processing reference plan selection: {ex.Message}");
+                LogHelper.LogError($"Error processing reference plan selection: {ex.Message}");
                 ErrorMessage = $"Error processing reference plan: {ex.Message}";
                 ShowLoadingOverlay = false;
             }

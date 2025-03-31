@@ -15,6 +15,7 @@ using Avalonia.Layout;
 using System.Linq;
 using Avalonia.VisualTree;
 using MCFAdaptApp.Domain.Models;
+using MCFAdaptApp.Avalonia.Helpers;
 
 namespace MCFAdaptApp.Avalonia.Views
 {
@@ -278,45 +279,45 @@ namespace MCFAdaptApp.Avalonia.Views
         
         private void RegisterTabButton_Click(object? sender, RoutedEventArgs e)
         {
-            Console.WriteLine("[LOG] RegisterTabButton_Click: Handler triggered.");
+            LogHelper.Log("RegisterTabButton_Click: Handler triggered.");
             // Find the parent MainWindow
             var visualRoot = this.GetVisualRoot();
-            Console.WriteLine($"[LOG] RegisterTabButton_Click: VisualRoot type: {visualRoot?.GetType().Name ?? "null"}");
+            LogHelper.Log($"RegisterTabButton_Click: VisualRoot type: {visualRoot?.GetType().Name ?? "null"}");
 
             if (visualRoot is MainWindow mainWindow)
             {
-                Console.WriteLine("[LOG] RegisterTabButton_Click: Found MainWindow. Attempting navigation via MainWindow.");
+                LogHelper.Log("RegisterTabButton_Click: Found MainWindow. Attempting navigation via MainWindow.");
                 // Navigate to Register tab using MainWindow's NavigateToTab method
                 mainWindow.NavigateToTab("register");
-                Console.WriteLine("[LOG] RegisterTabButton_Click: Called mainWindow.NavigateToTab('register').");
+                LogHelper.Log("RegisterTabButton_Click: Called mainWindow.NavigateToTab('register').");
                 
                 // Set the patient ID in register view if needed
-                Console.WriteLine("[LOG] RegisterTabButton_Click: Attempting to set PatientId in RegisterView.");
+                LogHelper.Log("RegisterTabButton_Click: Attempting to set PatientId in RegisterView.");
                 if (DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
                 {
                     var registerView = mainWindow.FindControl<RegisterView>("RegisterView");
-                    Console.WriteLine($"[LOG] RegisterTabButton_Click: Found RegisterView in MainWindow: {registerView != null}");
+                    LogHelper.Log($"RegisterTabButton_Click: Found RegisterView in MainWindow: {registerView != null}");
                     if (registerView != null && registerView.DataContext is RegisterViewModel registerViewModel)
                     {
-                        Console.WriteLine($"[LOG] RegisterTabButton_Click: Setting PatientId to {viewModel.SelectedPatient.PatientId}");
+                        LogHelper.Log($"RegisterTabButton_Click: Setting PatientId to {viewModel.SelectedPatient.PatientId}");
                         registerViewModel.PatientId = viewModel.SelectedPatient.PatientId;
                     }
                     else
                     {
-                        Console.WriteLine("[LOG-WARNING] RegisterTabButton_Click: Could not find RegisterView or its ViewModel in MainWindow.");
+                        LogHelper.LogWarning("RegisterTabButton_Click: Could not find RegisterView or its ViewModel in MainWindow.");
                     }
                 }
                 else 
                 {
-                     Console.WriteLine("[LOG-WARNING] RegisterTabButton_Click: Could not get SelectPatientViewModel or SelectedPatient from DataContext.");
+                    LogHelper.LogWarning("RegisterTabButton_Click: Could not get SelectPatientViewModel or SelectedPatient from DataContext.");
                 }
             }
             else
             {
-                Console.WriteLine("[LOG-WARNING] RegisterTabButton_Click: Did not find MainWindow. Using fallback logic (if any).");
+                LogHelper.LogWarning("RegisterTabButton_Click: Did not find MainWindow. Using fallback logic (if any).");
                 // Fallback logic would go here if needed
             }
-            Console.WriteLine("[LOG] RegisterTabButton_Click: Handler finished.");
+            LogHelper.Log("RegisterTabButton_Click: Handler finished.");
         }
         
         private void ContourTabButton_Click(object? sender, RoutedEventArgs e)
@@ -440,7 +441,7 @@ namespace MCFAdaptApp.Avalonia.Views
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Error loading patient data: {ex.Message}");
+                                LogHelper.LogError($"Error loading patient data: {ex.Message}");
                                 
                                 // Hide loading overlay
                                 Dispatcher.UIThread.Post(() =>
@@ -505,7 +506,7 @@ namespace MCFAdaptApp.Avalonia.Views
         
         private void AttachSelectPlanButtonHandlers()
         {
-            Console.WriteLine("[LOG] AttachSelectPlanButtonHandlers: Attempting to find and attach handlers.");
+            LogHelper.Log("AttachSelectPlanButtonHandlers: Attempting to find and attach handlers.");
             try
             {
                 // Find all buttons with the name "SelectReferencePlanButton"
@@ -514,182 +515,182 @@ namespace MCFAdaptApp.Avalonia.Views
                     .Where(b => b.Name == "SelectReferencePlanButton")
                     .ToList();
                 
-                Console.WriteLine($"[LOG] AttachSelectPlanButtonHandlers: Found {buttons.Count} Select Reference Plan buttons.");
+                LogHelper.Log($"AttachSelectPlanButtonHandlers: Found {buttons.Count} Select Reference Plan buttons.");
                 
                 // Attach the click handler to each button
                 foreach (var button in buttons)
                 {
-                    Console.WriteLine("[LOG] AttachSelectPlanButtonHandlers: Attaching Click handler to a button.");
+                    LogHelper.Log("AttachSelectPlanButtonHandlers: Attaching Click handler to a button.");
                     button.Click -= SelectReferencePlanButton_Click; // Prevent double attachment
                     button.Click += SelectReferencePlanButton_Click;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[LOG-ERROR] AttachSelectPlanButtonHandlers: Error attaching handlers: {ex.Message}");
+                LogHelper.LogError($"AttachSelectPlanButtonHandlers: Error attaching handlers: {ex.Message}");
             }
-            Console.WriteLine("[LOG] AttachSelectPlanButtonHandlers: Finished attaching handlers.");
+            LogHelper.Log("AttachSelectPlanButtonHandlers: Finished attaching handlers.");
         }
         
         private async void SelectReferencePlanButton_Click(object? sender, RoutedEventArgs e)
         {
-            Console.WriteLine("[LOG] SelectReferencePlanButton_Click: Handler triggered.");
-            try
+            LogHelper.Log("SelectReferencePlanButton_Click: Handler triggered.");
+            
+            // Show loading overlay
+            LogHelper.Log("SelectReferencePlanButton_Click: Attempting to show loading overlay.");
+            if (_loadingOverlay != null)
             {
-                Console.WriteLine("[LOG] SelectReferencePlanButton_Click: Attempting to show loading overlay.");
-                // Show loading overlay
-                if (_loadingOverlay != null) 
-                {
-                    _loadingOverlay.IsVisible = true;
-                    Console.WriteLine("[LOG] SelectReferencePlanButton_Click: Loading overlay visibility set to true.");
-                }
-                else
-                {
-                    Console.WriteLine("[LOG-WARNING] SelectReferencePlanButton_Click: _loadingOverlay is null.");
-                }
-                
-                // Phase 1: Loading CBCT Projections (2 seconds)
-                Console.WriteLine("[LOG] SelectReferencePlanButton_Click: Phase 1 - Updating status text.");
-                if (_loadingStatusText != null) 
-                {
-                    _loadingStatusText.Text = "Loading CBCT Projections...";
-                    Console.WriteLine("[LOG] SelectReferencePlan_Click: Status text: Loading CBCT Projections...");
-                }
-                else
-                {
-                    Console.WriteLine("[LOG-WARNING] SelectReferencePlan_Click: _loadingStatusText is null.");
-                }
-                
-                Console.WriteLine("[LOG] SelectReferencePlan_Click: Phase 1 - Starting delay.");
-                await Task.Delay(2000);
-                Console.WriteLine("[LOG] SelectReferencePlan_Click: Phase 1 - Delay finished.");
-                
-                // Phase 2: Loading Reference Plan Data (2 seconds)
-                Console.WriteLine("[LOG] SelectReferencePlan_Click: Phase 2 - Updating status text.");
-                if (_loadingStatusText != null)
-                {
-                    _loadingStatusText.Text = "Loading Reference Plan Data...";
-                    Console.WriteLine("[LOG] SelectReferencePlan_Click: Status text: Loading Reference Plan Data...");
-                }
-                
-                Console.WriteLine("[LOG] SelectReferencePlan_Click: Phase 2 - Starting delay.");
-                await Task.Delay(2000);
-                Console.WriteLine("[LOG] SelectReferencePlan_Click: Phase 2 - Delay finished.");
-                
-                // --- MODIFIED NAVIGATION LOGIC --- 
-                Console.WriteLine("[LOG] SelectReferencePlan_Click: Attempting navigation via MainWindow.");
-                var visualRoot = this.GetVisualRoot();
-                Console.WriteLine($"[LOG] SelectReferencePlan_Click: VisualRoot type: {visualRoot?.GetType().Name ?? "null"}");
-
+                _loadingOverlay.IsVisible = true;
+                LogHelper.Log("SelectReferencePlanButton_Click: Loading overlay visibility set to true.");
+            }
+            else
+            {
+                LogHelper.LogWarning("SelectReferencePlanButton_Click: _loadingOverlay is null.");
+            }
+            
+            // Phase 1 - Update status text to "Loading CBCT Projections..."
+            LogHelper.Log("SelectReferencePlanButton_Click: Phase 1 - Updating status text.");
+            if (_loadingStatusText != null)
+            {
+                _loadingStatusText.Text = "Loading CBCT Projections...";
+                LogHelper.Log("SelectReferencePlan_Click: Status text: Loading CBCT Projections...");
+            }
+            else
+            {
+                LogHelper.LogWarning("SelectReferencePlan_Click: _loadingStatusText is null.");
+            }
+            
+            LogHelper.Log("SelectReferencePlan_Click: Phase 1 - Starting delay.");
+            await Task.Delay(2000);  // Simulate work for 2 seconds
+            LogHelper.Log("SelectReferencePlan_Click: Phase 1 - Delay finished.");
+            
+            // Phase 2 - Update status text to "Loading Reference Plan Data..."
+            LogHelper.Log("SelectReferencePlan_Click: Phase 2 - Updating status text.");
+            if (_loadingStatusText != null)
+            {
+                _loadingStatusText.Text = "Loading Reference Plan Data...";
+                LogHelper.Log("SelectReferencePlan_Click: Status text: Loading Reference Plan Data...");
+            }
+            
+            LogHelper.Log("SelectReferencePlan_Click: Phase 2 - Starting delay.");
+            await Task.Delay(2000);  // Simulate work for 2 seconds
+            LogHelper.Log("SelectReferencePlan_Click: Phase 2 - Delay finished.");
+            
+            // Navigation to Register tab
+            LogHelper.Log("SelectReferencePlan_Click: Attempting navigation via MainWindow.");
+            var visualRoot = this.GetVisualRoot();
+            LogHelper.Log($"SelectReferencePlan_Click: VisualRoot type: {visualRoot?.GetType().Name ?? "null"}");
+            
+            try {
                 if (visualRoot is MainWindow mainWindow)
                 {
-                    Console.WriteLine("[LOG] SelectReferencePlan_Click: Found MainWindow. Navigating to 'register' tab.");
+                    LogHelper.Log("SelectReferencePlan_Click: Found MainWindow. Navigating to 'register' tab.");
                     
-                    // Get the required objects from SelectPatientViewModel
-                    if (DataContext is SelectPatientViewModel viewModel && viewModel.SelectedPatient != null)
+                    // Navigate to Register tab
+                    mainWindow.NavigateToTab("register");
+                    
+                    // Initialize the RegisterViewModel with selected patient and plan
+                    var registerView = mainWindow.FindControl<RegisterView>("RegisterView");
+                    LogHelper.Log($"SelectReferencePlan_Click: Found RegisterView in MainWindow: {registerView != null}");
+                    
+                    if (registerView != null && registerView.DataContext is RegisterViewModel registerViewModel && DataContext is SelectPatientViewModel viewModel)
                     {
-                        // Find the RegisterView in MainWindow
-                        var registerView = mainWindow.FindControl<RegisterView>("RegisterView");
-                        Console.WriteLine($"[LOG] SelectReferencePlan_Click: Found RegisterView in MainWindow: {registerView != null}");
-                        
-                        if (registerView != null && registerView.DataContext is RegisterViewModel registerViewModel)
+                        // Get the selected patient
+                        var patient = viewModel.SelectedPatient;
+                        if (patient != null)
                         {
-                            // Get the selected patient
-                            var patient = viewModel.SelectedPatient;
-                            Console.WriteLine($"[LOG] SelectReferencePlan_Click: Got Patient: {patient.DisplayName} (ID: {patient.PatientId})");
-                            Console.WriteLine($"[LOG] SELECTED PATIENT: ID={patient.PatientId}, Name={patient.FirstName} {patient.LastName}");
+                            LogHelper.Log($"SelectReferencePlan_Click: Got Patient: {patient.DisplayName} (ID: {patient.PatientId})");
+                            LogHelper.Log($"SELECTED PATIENT: ID={patient.PatientId}, Name={patient.FirstName} {patient.LastName}");
                             
-                            // Find selected anatomy model (assuming there's one selected or using the first one)
+                            // Get the selected plan
                             AnatomyModel? anatomyModel = null;
-                            if (patient.AnatomyModels != null && patient.AnatomyModels.Count > 0)
+                            ReferencePlan? referencePlan = null;
+                            
+                            // Find which anatomy model contains this plan
+                            if (patient.AnatomyModels != null)
                             {
-                                anatomyModel = patient.AnatomyModels[0]; // For now, pick the first one
-                                Console.WriteLine($"[LOG] SelectReferencePlan_Click: Got AnatomyModel: {anatomyModel.Name}");
-                                
-                                // Find selected reference plan (assuming there's one selected or using the first one)
-                                ReferencePlan? referencePlan = null;
-                                if (anatomyModel.ReferencePlans != null && anatomyModel.ReferencePlans.Count > 0)
+                                // Get the button that was clicked
+                                if (sender is Button button && button.DataContext is ReferencePlan clickedPlan)
                                 {
-                                    referencePlan = anatomyModel.ReferencePlans[0]; // For now, pick the first one
-                                    Console.WriteLine($"[LOG] SelectReferencePlan_Click: Got ReferencePlan");
-                                    
+                                    referencePlan = clickedPlan;
+                                    LogHelper.Log($"SelectReferencePlan_Click: Got ReferencePlan");
                                     if (referencePlan != null)
                                     {
-                                        Console.WriteLine($"[LOG] SELECTED REFERENCE PLAN: {referencePlan.Name}");
+                                        LogHelper.Log($"SELECTED REFERENCE PLAN: {referencePlan.Name}");
                                     }
                                     else
                                     {
-                                        Console.WriteLine("[LOG] SELECTED REFERENCE PLAN: None");
+                                        LogHelper.Log("SELECTED REFERENCE PLAN: None");
                                     }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("[LOG-WARNING] SelectReferencePlan_Click: No ReferencePlans found in the AnatomyModel.");
-                                    Console.WriteLine("[LOG] SELECTED REFERENCE PLAN: None");
+                                    
+                                    // Find which anatomy model contains this plan
+                                    foreach (var model in patient.AnatomyModels)
+                                    {
+                                        if (model.ReferencePlans != null && model.ReferencePlans.Contains(clickedPlan))
+                                        {
+                                            anatomyModel = model;
+                                            LogHelper.Log($"SelectReferencePlan_Click: Got AnatomyModel: {anatomyModel.Name}");
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (anatomyModel == null && patient.AnatomyModels.Count > 0)
+                                    {
+                                        LogHelper.LogWarning("SelectReferencePlan_Click: No ReferencePlans found in the AnatomyModel.");
+                                        LogHelper.Log("SELECTED REFERENCE PLAN: None");
+                                    }
                                 }
                                 
                                 // Update patient info in MainWindow
-                                Console.WriteLine("[LOG] SelectReferencePlan_Click: Updating patient info in MainWindow");
+                                LogHelper.Log("SelectReferencePlan_Click: Updating patient info in MainWindow");
                                 mainWindow.UpdatePatientInfo(patient, anatomyModel, referencePlan);
                                 
-                                // Set everything on the RegisterViewModel
-                                Console.WriteLine("[LOG] SelectReferencePlan_Click: Initializing RegisterViewModel with full objects.");
-                                _ = registerViewModel.InitializeAsync(patient, anatomyModel, referencePlan);
+                                // Initialize the RegisterViewModel with the patient, anatomy model, and reference plan
+                                LogHelper.Log("SelectReferencePlan_Click: Initializing RegisterViewModel with full objects.");
+                                await registerViewModel.InitializeAsync(patient, anatomyModel, referencePlan);
                             }
                             else
                             {
-                                Console.WriteLine("[LOG-WARNING] SelectReferencePlan_Click: No AnatomyModels found for the Patient.");
-                                Console.WriteLine("[LOG] SELECTED REFERENCE PLAN: None");
+                                LogHelper.LogWarning("SelectReferencePlan_Click: No AnatomyModels found for the Patient.");
+                                LogHelper.Log("SELECTED REFERENCE PLAN: None");
                                 
-                                // Update patient info in MainWindow with just the patient
-                                Console.WriteLine("[LOG] SelectReferencePlan_Click: Updating patient info in MainWindow (patient only)");
+                                // Update patient info in MainWindow (patient only)
+                                LogHelper.Log("SelectReferencePlan_Click: Updating patient info in MainWindow (patient only)");
                                 mainWindow.UpdatePatientInfo(patient);
                                 
-                                // Even without anatomy model, set the Patient
-                                _ = registerViewModel.InitializeAsync(patient);
+                                // Initialize the RegisterViewModel with just the patient
+                                await registerViewModel.InitializeAsync(patient);
                             }
-                            
-                            // Now navigate to the Register tab
-                            mainWindow.NavigateToTab("register");
-                            Console.WriteLine("[LOG] SelectReferencePlan_Click: Navigated to Register tab.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("[LOG-WARNING] SelectReferencePlan_Click: Could not find RegisterView or its ViewModel in MainWindow.");
                         }
                     }
-                    else 
-                    {
-                         Console.WriteLine("[LOG-WARNING] SelectReferencePlan_Click: Could not get SelectPatientViewModel or SelectedPatient from DataContext.");
-                    }
+                    
+                    LogHelper.Log("SelectReferencePlan_Click: Navigated to Register tab.");
                 }
                 else
                 {
-                    Console.WriteLine("[LOG-WARNING] SelectReferencePlan_Click: Did not find MainWindow. Cannot navigate.");
+                    LogHelper.LogWarning("SelectReferencePlan_Click: Could not find RegisterView or its ViewModel in MainWindow.");
                 }
-                // --- END OF MODIFIED NAVIGATION LOGIC --- 
-                
-                // Hide loading overlay
-                Console.WriteLine("[LOG] SelectReferencePlan_Click: Attempting to hide loading overlay.");
-                if (_loadingOverlay != null)
-                {
-                    _loadingOverlay.IsVisible = false;
-                    Console.WriteLine("[LOG] SelectReferencePlan_Click: Loading overlay visibility set to false.");
-                }
-                else
-                {
-                    Console.WriteLine("[LOG-WARNING] SelectReferencePlan_Click: _loadingOverlay is null (when trying to hide).");
-                }
-                Console.WriteLine("[LOG] SelectReferencePlan_Click: Handler finished.");
             }
-            catch (Exception ex)
+            catch (Exception ex) {
+                LogHelper.LogWarning("SelectReferencePlan_Click: Could not get SelectPatientViewModel or SelectedPatient from DataContext.");
+            }
+            
+            if (!(visualRoot is MainWindow)) {
+                LogHelper.LogWarning("SelectReferencePlan_Click: Did not find MainWindow. Cannot navigate.");
+            }
+            
+            // Hide loading overlay
+            LogHelper.Log("SelectReferencePlan_Click: Attempting to hide loading overlay.");
+            if (_loadingOverlay != null)
             {
-                Console.WriteLine($"[LOG-ERROR] SelectReferencePlan_Click: Exception caught: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                
-                // Attempt to hide loading overlay even on error
-                if (_loadingOverlay != null) _loadingOverlay.IsVisible = false;
+                _loadingOverlay.IsVisible = false;
+                LogHelper.Log("SelectReferencePlan_Click: Loading overlay visibility set to false.");
             }
+            else
+            {
+                LogHelper.LogWarning("SelectReferencePlan_Click: _loadingOverlay is null (when trying to hide).");
+            }
+            LogHelper.Log("SelectReferencePlan_Click: Handler finished.");
         }
     }
 }

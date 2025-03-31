@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MCFAdaptApp.Domain.Models;
 using MCFAdaptApp.Domain.Services;
 using FellowOakDicom;
+using MCFAdaptApp.Infrastructure.Helpers;
 
 namespace MCFAdaptApp.Infrastructure.Services
 {
@@ -36,13 +37,13 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// <returns>로드된 CBCT 객체</returns>
         public async Task<ReferenceCT> LoadCBCTAsync(string patientId)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading CBCT DICOM files for patient: {patientId}");
+            LogHelper.Log($"Loading CBCT DICOM files for patient: {patientId}");
             
             string cbctPath = Path.Combine(_basePath, _cbctFolder);
             
             if (!Directory.Exists(cbctPath))
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] CBCT directory not found: {cbctPath}");
+                LogHelper.LogWarning($"CBCT directory not found: {cbctPath}");
                 return null;
             }
             
@@ -56,13 +57,13 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// <returns>로드된 참조 CT 객체</returns>
         public async Task<ReferenceCT> LoadReferenceCTAsync(string patientId)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Loading Reference CT DICOM files for patient: {patientId}");
+            LogHelper.Log($"Loading Reference CT DICOM files for patient: {patientId}");
             
             string planDataPath = Path.Combine(_basePath, _planDataFolder);
             
             if (!Directory.Exists(planDataPath))
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] PlanData directory not found: {planDataPath}");
+                LogHelper.LogWarning($"PlanData directory not found: {planDataPath}");
                 return null;
             }
             
@@ -80,7 +81,7 @@ namespace MCFAdaptApp.Infrastructure.Services
         {
             try
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Searching for DICOM files in: {directoryPath}");
+                LogHelper.Log($"Searching for DICOM files in: {directoryPath}");
                 
                 // 디렉토리에서 모든 DICOM 파일 찾기
                 var dicomFiles = await Task.Run(() => 
@@ -92,11 +93,11 @@ namespace MCFAdaptApp.Infrastructure.Services
                 
                 if (dicomFiles.Count == 0)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] No DICOM files found in: {directoryPath}");
+                    LogHelper.LogWarning($"No DICOM files found in: {directoryPath}");
                     return null;
                 }
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Found {dicomFiles.Count} DICOM files");
+                LogHelper.Log($"Found {dicomFiles.Count} DICOM files");
                 
                 // 첫 번째 DICOM 파일을 로드하여 메타데이터 확인
                 var firstDicom = await Task.Run(() => DicomFile.Open(dicomFiles[0]));
@@ -144,16 +145,16 @@ namespace MCFAdaptApp.Infrastructure.Services
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error extracting DICOM metadata: {ex.Message}");
+                        LogHelper.LogError($"Error extracting DICOM metadata: {ex.Message}");
                     }
                 }
                 
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Successfully loaded {type} for patient: {patientId}");
+                LogHelper.Log($"Successfully loaded {type} for patient: {patientId}");
                 return referenceCT;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error loading DICOM files: {ex.Message}");
+                LogHelper.LogError($"Error loading DICOM files: {ex.Message}");
                 return null;
             }
         }

@@ -116,8 +116,11 @@
 			</StackPanel>
 
 			<!-- MCF-Adapt Logo Text (visible when patient info is hidden) -->
-			<TextBlock Grid.Column="0" x:Name="LogoText" Text="MCF-Adapt" Foreground="White" FontSize="15"
-					 Margin="15,5" VerticalAlignment="Center" FontWeight="SemiBold" FontFamily="Segoe UI"/>
+			<Border Grid.Column="0" x:Name="LogoContainer" Background="White" Width="60" Height="60" 
+				   Margin="10,5,10,5" VerticalAlignment="Center" CornerRadius="3" IsVisible="True">
+				<Image x:Name="LogoImage" Source="avares://MCFAdaptApp.Avalonia/Resources/Images/Mayo_Clinic_logo.png" 
+					   Stretch="Uniform" Margin="8"/>
+			</Border>
 
 			<!-- Tab Items (right side) -->
 			<TabControl Grid.Column="1" x:Name="MainTabControl" TabStripPlacement="Top"

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using MCFAdaptApp.Avalonia.Helpers;
 using MCFAdaptApp.Avalonia.ViewModels;
 using MCFAdaptApp.Domain.Models;
 using System;
@@ -25,7 +26,8 @@ namespace MCFAdaptApp.Avalonia
         private TextBlock? _patientIdText;
         private TextBlock? _anatomyModelText;
         private TextBlock? _referencePlanText;
-        private TextBlock? _logoText;
+        private Border? _logoContainer;
+        private Image? _logoImage;
 
         // Content views
         private Control? _patientView;
@@ -71,7 +73,8 @@ namespace MCFAdaptApp.Avalonia
             _patientIdText = this.FindControl<TextBlock>("PatientIdText");
             _anatomyModelText = this.FindControl<TextBlock>("AnatomyModelText");
             _referencePlanText = this.FindControl<TextBlock>("ReferencePlanText");
-            _logoText = this.FindControl<TextBlock>("LogoText");
+            _logoContainer = this.FindControl<Border>("LogoContainer");
+            _logoImage = this.FindControl<Image>("LogoImage");
             
             // Initialize content views
             _patientView = this.FindControl<Control>("PatientView");
@@ -89,23 +92,24 @@ namespace MCFAdaptApp.Avalonia
             // Check if all controls were found
             if (_patientInfoPanel == null || _patientInitialsText == null || _patientNameText == null || 
                 _patientDetailsText == null || _patientIdText == null || _anatomyModelText == null || 
-                _referencePlanText == null || _logoText == null)
+                _referencePlanText == null || _logoContainer == null || _logoImage == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.InitializeComponent: Failed to find one or more patient info controls.");
+                LogHelper.LogError("MainWindow.InitializeComponent: Failed to find one or more patient info controls.");
                 
                 // Log which controls are missing
-                Console.WriteLine($"  PatientInfoPanel: {_patientInfoPanel != null}");
-                Console.WriteLine($"  PatientInitialsText: {_patientInitialsText != null}");
-                Console.WriteLine($"  PatientNameText: {_patientNameText != null}");
-                Console.WriteLine($"  PatientDetailsText: {_patientDetailsText != null}");
-                Console.WriteLine($"  PatientIdText: {_patientIdText != null}");
-                Console.WriteLine($"  AnatomyModelText: {_anatomyModelText != null}");
-                Console.WriteLine($"  ReferencePlanText: {_referencePlanText != null}");
-                Console.WriteLine($"  LogoText: {_logoText != null}");
+                LogHelper.Log($"  PatientInfoPanel: {_patientInfoPanel != null}");
+                LogHelper.Log($"  PatientInitialsText: {_patientInitialsText != null}");
+                LogHelper.Log($"  PatientNameText: {_patientNameText != null}");
+                LogHelper.Log($"  PatientDetailsText: {_patientDetailsText != null}");
+                LogHelper.Log($"  PatientIdText: {_patientIdText != null}");
+                LogHelper.Log($"  AnatomyModelText: {_anatomyModelText != null}");
+                LogHelper.Log($"  ReferencePlanText: {_referencePlanText != null}");
+                LogHelper.Log($"  LogoContainer: {_logoContainer != null}");
+                LogHelper.Log($"  LogoImage: {_logoImage != null}");
             }
             else
             {
-                Console.WriteLine("[LOG] MainWindow.InitializeComponent: Successfully found all patient info controls.");
+                LogHelper.Log("MainWindow.InitializeComponent: Successfully found all patient info controls.");
             }
         }
 
@@ -114,7 +118,7 @@ namespace MCFAdaptApp.Avalonia
             if (_mainTabControl != null)
             {
                 int index = _mainTabControl.SelectedIndex;
-                Console.WriteLine($"[LOG] MainWindow.MainTabControl_SelectionChanged: Tab index changed to {index}");
+                LogHelper.Log($"MainWindow.MainTabControl_SelectionChanged: Tab index changed to {index}");
                 UpdateContentVisibility(index);
             }
         }
@@ -163,7 +167,7 @@ namespace MCFAdaptApp.Avalonia
             }
             else
             {
-                Console.WriteLine("[ERROR] MainWindow.SetupWindowControls: _headerBar is null");
+                LogHelper.LogError("MainWindow.SetupWindowControls: _headerBar is null");
             }
 
             if (_minimizeButton != null)
@@ -175,7 +179,7 @@ namespace MCFAdaptApp.Avalonia
             }
             else
             {
-                Console.WriteLine("[ERROR] MainWindow.SetupWindowControls: _minimizeButton is null");
+                LogHelper.LogError("MainWindow.SetupWindowControls: _minimizeButton is null");
             }
 
             if (_restoreMaximizeButton != null)
@@ -189,7 +193,7 @@ namespace MCFAdaptApp.Avalonia
             }
             else
             {
-                Console.WriteLine("[ERROR] MainWindow.SetupWindowControls: _restoreMaximizeButton is null");
+                LogHelper.LogError("MainWindow.SetupWindowControls: _restoreMaximizeButton is null");
             }
 
             if (_closeButton != null)
@@ -201,16 +205,16 @@ namespace MCFAdaptApp.Avalonia
             }
             else
             {
-                Console.WriteLine("[ERROR] MainWindow.SetupWindowControls: _closeButton is null");
+                LogHelper.LogError("MainWindow.SetupWindowControls: _closeButton is null");
             }
         }
 
         public void NavigateToTab(string tabName)
         {
-            Console.WriteLine($"[LOG] MainWindow.NavigateToTab: Called with tabName: '{tabName}'.");
+            LogHelper.Log($"MainWindow.NavigateToTab: Called with tabName: '{tabName}'.");
             if (_mainTabControl == null) 
             {
-                Console.WriteLine("[LOG-WARNING] MainWindow.NavigateToTab: _mainTabControl is null. Cannot navigate.");
+                LogHelper.LogWarning("MainWindow.NavigateToTab: _mainTabControl is null. Cannot navigate.");
                 return;
             }
 
@@ -233,16 +237,16 @@ namespace MCFAdaptApp.Avalonia
                     targetIndex = 4;
                     break;
                 default:
-                    Console.WriteLine($"[LOG-WARNING] MainWindow.NavigateToTab: Unknown tabName '{tabName}'.");
+                    LogHelper.LogWarning($"MainWindow.NavigateToTab: Unknown tabName '{tabName}'.");
                     break;
             }
 
             if (targetIndex != -1)
             {
-                Console.WriteLine($"[LOG] MainWindow.NavigateToTab: Setting SelectedIndex to {targetIndex}.");
+                LogHelper.Log($"MainWindow.NavigateToTab: Setting SelectedIndex to {targetIndex}.");
                 _mainTabControl.SelectedIndex = targetIndex;
                 UpdateContentVisibility(targetIndex);
-                Console.WriteLine($"[LOG] MainWindow.NavigateToTab: SelectedIndex set to {_mainTabControl.SelectedIndex}.");
+                LogHelper.Log($"MainWindow.NavigateToTab: SelectedIndex set to {_mainTabControl.SelectedIndex}.");
             }
         }
         
@@ -251,42 +255,42 @@ namespace MCFAdaptApp.Avalonia
         /// </summary>
         public void UpdatePatientInfo(Patient patient, AnatomyModel? anatomyModel = null, ReferencePlan? referencePlan = null)
         {
-            Console.WriteLine($"[LOG] MainWindow.UpdatePatientInfo: Updating patient info panel for {patient.DisplayName}");
+            LogHelper.Log($"MainWindow.UpdatePatientInfo: Updating patient info panel for {patient.DisplayName}");
             
             // Check if all required controls are available
             if (_patientInfoPanel == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.UpdatePatientInfo: _patientInfoPanel is null");
+                LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientInfoPanel is null");
                 return;
             }
             
             if (_patientInitialsText == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.UpdatePatientInfo: _patientInitialsText is null");
+                LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientInitialsText is null");
                 return;
             }
             
             if (_patientNameText == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.UpdatePatientInfo: _patientNameText is null");
+                LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientNameText is null");
                 return;
             }
             
             if (_patientDetailsText == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.UpdatePatientInfo: _patientDetailsText is null");
+                LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientDetailsText is null");
                 return;
             }
             
             if (_patientIdText == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.UpdatePatientInfo: _patientIdText is null");
+                LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientIdText is null");
                 return;
             }
             
-            if (_logoText == null)
+            if (_logoContainer == null || _logoImage == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.UpdatePatientInfo: _logoText is null");
+                LogHelper.LogError("MainWindow.UpdatePatientInfo: _logoContainer or _logoImage is null");
                 return;
             }
             
@@ -322,14 +326,14 @@ namespace MCFAdaptApp.Avalonia
                 
                 // Show the panel and hide the logo
                 _patientInfoPanel.IsVisible = true;
-                _logoText.IsVisible = false;
+                _logoContainer.IsVisible = false;
                 
-                Console.WriteLine("[LOG] MainWindow.UpdatePatientInfo: Patient info panel updated successfully");
+                LogHelper.Log("MainWindow.UpdatePatientInfo: Patient info panel updated successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] MainWindow.UpdatePatientInfo: Exception occurred: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                LogHelper.LogError($"MainWindow.UpdatePatientInfo: Exception occurred: {ex.Message}");
+                LogHelper.Log(ex.StackTrace);
             }
         }
         
@@ -338,31 +342,33 @@ namespace MCFAdaptApp.Avalonia
         /// </summary>
         public void HidePatientInfo()
         {
-            Console.WriteLine("[LOG] MainWindow.HidePatientInfo: Hiding patient info panel");
+            LogHelper.Log("MainWindow.HidePatientInfo: Hiding patient info panel");
             
+            // Check if all required controls are available
             if (_patientInfoPanel == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.HidePatientInfo: _patientInfoPanel is null");
+                LogHelper.LogError("MainWindow.HidePatientInfo: _patientInfoPanel is null");
                 return;
             }
             
-            if (_logoText == null)
+            if (_logoContainer == null || _logoImage == null)
             {
-                Console.WriteLine("[ERROR] MainWindow.HidePatientInfo: _logoText is null");
+                LogHelper.LogError("MainWindow.HidePatientInfo: _logoContainer or _logoImage is null");
                 return;
             }
             
             try
             {
+                // Hide the panel and show the logo
                 _patientInfoPanel.IsVisible = false;
-                _logoText.IsVisible = true;
+                _logoContainer.IsVisible = true;
                 
-                Console.WriteLine("[LOG] MainWindow.HidePatientInfo: Patient info panel hidden successfully");
+                LogHelper.Log("MainWindow.HidePatientInfo: Patient info panel hidden successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] MainWindow.HidePatientInfo: Exception occurred: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                LogHelper.LogError($"MainWindow.HidePatientInfo: Exception occurred: {ex.Message}");
+                LogHelper.Log(ex.StackTrace);
             }
         }
     }

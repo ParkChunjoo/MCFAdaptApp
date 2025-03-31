@@ -10,6 +10,7 @@ using MCFAdaptApp.Infrastructure.Services;
 using MCFAdaptApp.Avalonia.Commands;
 using MCFAdaptApp.Avalonia.Views;
 using MCFAdaptApp.Avalonia;
+using MCFAdaptApp.Avalonia.Helpers;
 
 namespace MCFAdaptApp.Avalonia.ViewModels
 {
@@ -132,7 +133,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// <param name="authService">Optional authentication service for dependency injection</param>
         public LoginViewModel(IAuthenticationService? authService = null)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Initializing LoginViewModel");
+            LogHelper.Log("Initializing LoginViewModel");
             
             // Dependency injection or create default service
             _authService = authService ?? new SimpleAuthenticationService();
@@ -142,7 +143,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             ExitCommand = new RelayCommand(ExitApplication);
             TogglePasswordVisibilityCommand = new RelayCommand(TogglePasswordVisibility);
             
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] LoginViewModel initialized");
+            LogHelper.Log("LoginViewModel initialized");
         }
 
         /// <summary>
@@ -166,8 +167,8 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// </summary>
         private async Task LoginAsync()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login attempt for user: {UserId}");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Password length: {Password?.Length ?? 0}");
+            LogHelper.Log($"Login attempt for user: {UserId}");
+            LogHelper.Log($"Password length: {Password?.Length ?? 0}");
             
             try
             {
@@ -175,16 +176,16 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 ClearError();
 
                 // Authenticate user
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Calling AuthenticateAsync with UserId: '{UserId}' and Password: '{Password}'");
+                LogHelper.Log($"Calling AuthenticateAsync with UserId: '{UserId}' and Password: '{Password}'");
                 var isAuthenticated = await _authService.AuthenticateAsync(UserId, Password ?? string.Empty);
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Authentication result: {isAuthenticated}");
+                LogHelper.Log($"Authentication result: {isAuthenticated}");
                 
                 if (isAuthenticated)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login successful");
+                    LogHelper.Log("Login successful");
                     
                     // Navigate to main window with patient view
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating MainWindow");
+                    LogHelper.Log("Creating MainWindow");
                     
                     // Create the patient view model directly
                     var viewModel = new SelectPatientViewModel(new FilePatientService());
@@ -192,7 +193,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     // Create and show the new main window with the patient view model
                     var mainWindow = new MainWindow(viewModel);
                     
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Showing MainWindow");
+                    LogHelper.Log("Showing MainWindow");
 
                     // Set the main window as the application's main window
                     if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -209,23 +210,23 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                         // Close the login window
                         currentWindow?.Close();
                         
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Main window switched to MainWindow");
+                        LogHelper.Log("Main window switched to MainWindow");
                     }
                     else
                     {
-                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Application lifetime is not IClassicDesktopStyleApplicationLifetime");
+                        LogHelper.Log("Application lifetime is not IClassicDesktopStyleApplicationLifetime");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login failed: Invalid credentials");
+                    LogHelper.Log("Login failed: Invalid credentials");
                     ErrorMessage = "Invalid user ID or password.";
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Login error: {ex.Message}");
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Exception details: {ex}");
+                LogHelper.LogError($"Login error: {ex.Message}");
+                LogHelper.LogException(ex);
                 ErrorMessage = $"Login error: {ex.Message}";
             }
             finally
@@ -250,7 +251,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         /// </summary>
         private void ExitApplication(object parameter)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] ExitCommand executed, shutting down application");
+            LogHelper.Log("ExitCommand executed, shutting down application");
             
             if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {

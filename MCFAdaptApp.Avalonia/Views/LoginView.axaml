@@ -90,7 +90,9 @@
                          FontSize="16"
                          Width="450"
                          HorizontalContentAlignment="Center"
-                         Margin="0,0,0,20"/>
+                         Margin="0,0,0,20"
+                         x:Name="UsernameTextBox" 
+                         KeyDown="TextBox_KeyDown"/>
 
                 <!-- Password -->
                 <TextBlock Text="Password:"
@@ -109,7 +111,8 @@
                              HorizontalContentAlignment="Center"
                              PasswordChar="•"
                              IsVisible="{Binding !IsPasswordVisible}"
-                             Text="{Binding Password, Mode=TwoWay}"/>
+                             Text="{Binding Password, Mode=TwoWay}"
+                             KeyDown="TextBox_KeyDown"/>
                     <TextBox x:Name="PasswordVisibleBox"
                              Height="45"
                              Background="#FF2D2D30"
@@ -119,7 +122,8 @@
                              FontSize="16"
                              HorizontalContentAlignment="Center"
                              IsVisible="{Binding IsPasswordVisible}"
-                             Text="{Binding Password, Mode=TwoWay}"/>
+                             Text="{Binding Password, Mode=TwoWay}"
+                             KeyDown="TextBox_KeyDown"/>
                     <Button x:Name="TogglePasswordButton"
                             Width="35"
                             Height="35"

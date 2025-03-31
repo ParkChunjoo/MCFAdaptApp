@@ -6,6 +6,7 @@ using System.Windows.Input;
 using MCFAdaptApp.Domain.Models;
 using MCFAdaptApp.Domain.Services;
 using MCFAdaptApp.Avalonia.Commands;
+using MCFAdaptApp.Avalonia.Helpers;
 
 namespace MCFAdaptApp.Avalonia.ViewModels
 {
@@ -265,12 +266,10 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         public async Task InitializeAsync(Patient patient, AnatomyModel anatomyModel = null, ReferencePlan referencePlan = null)
         {
             // Log the full details of what we received
-            Console.WriteLine();
-            Console.WriteLine("[LOG] RegisterViewModel.InitializeAsync: Received data:");
-            Console.WriteLine($"[LOG] Patient: {patient?.PatientId ?? "null"} - {patient?.FirstName ?? ""} {patient?.LastName ?? ""}");
-            Console.WriteLine($"[LOG] AnatomyModel: {anatomyModel?.Name ?? "null"}");
-            Console.WriteLine($"[LOG] ReferencePlan: {referencePlan?.Name ?? "null"}");
-            Console.WriteLine();
+            LogHelper.Log("RegisterViewModel.InitializeAsync: Received data:");
+            LogHelper.Log($"Patient: {patient?.PatientId ?? "null"} - {patient?.FirstName ?? ""} {patient?.LastName ?? ""}");
+            LogHelper.Log($"AnatomyModel: {anatomyModel?.Name ?? "null"}");
+            LogHelper.Log($"ReferencePlan: {referencePlan?.Name ?? "null"}");
 
             Patient = patient;
             SelectedAnatomyModel = anatomyModel;
