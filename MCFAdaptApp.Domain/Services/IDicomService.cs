@@ -24,6 +24,21 @@ namespace MCFAdaptApp.Domain.Services
         Task<ReferenceCT> LoadReferenceCTAsync(string patientId);
 
         /// <summary>
+        /// </summary>
+        /// <param name="patientId">환자 ID</param>
+        Task<RTStructure> LoadRTStructureAsync(string patientId);
+
+        /// <summary>
+        /// </summary>
+        /// <param name="patientId">환자 ID</param>
+        Task<RTPlan> LoadRTPlanAsync(string patientId);
+
+        /// <summary>
+        /// </summary>
+        /// <param name="patientId">환자 ID</param>
+        Task<RTDose> LoadRTDoseAsync(string patientId);
+
+        /// <summary>
         /// 지정된 경로의 DICOM 파일들을 로드합니다.
         /// </summary>
         /// <param name="directoryPath">DICOM 파일이 있는 디렉토리 경로</param>
@@ -32,4 +47,4 @@ namespace MCFAdaptApp.Domain.Services
         /// <returns>로드된 ReferenceCT 객체</returns>
         Task<ReferenceCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type);
     }
-} 
+}
