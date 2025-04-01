@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 using MCFAdaptApp.Domain.Models;
 using MCFAdaptApp.Domain.Services;
 using FellowOakDicom;
+using FellowOakDicom.Imaging;
 using MCFAdaptApp.Infrastructure.Helpers;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace MCFAdaptApp.Infrastructure.Services
 {
@@ -320,78 +326,137 @@ namespace MCFAdaptApp.Infrastructure.Services
             {
                 LogHelper.Log($"Searching for DICOM files in: {directoryPath}");
 
-                // 디렉토리에서 모든 DICOM 파일 찾기
-                var dicomFiles = await Task.Run(() =>
+                // Find all DICOM files in the directory
+                var dicomFilePaths = await Task.Run(() =>
                 {
                     return Directory.GetFiles(directoryPath, "*.dcm", SearchOption.AllDirectories)
                         .Union(Directory.GetFiles(directoryPath, "*.DCM", SearchOption.AllDirectories))
                         .ToList();
                 });
 
-                if (dicomFiles.Count == 0)
+                if (dicomFilePaths.Count == 0)
                 {
                     LogHelper.LogWarning($"No DICOM files found in: {directoryPath}");
                     return null;
                 }
 
-                LogHelper.Log($"Found {dicomFiles.Count} DICOM files");
+                LogHelper.Log($"Found {dicomFilePaths.Count} DICOM files");
 
-                // 첫 번째 DICOM 파일을 로드하여 메타데이터 확인
-                var firstDicom = await Task.Run(() => DicomFile.Open(dicomFiles[0]));
+                // Sort files (important for correct slice order)
+                // Assuming filenames contain slice number or can be sorted naturally
+                dicomFilePaths.Sort(); // Basic sort, might need more robust sorting based on DICOM tags
 
-                // ReferenceCT 객체 생성
+                // Load the first DICOM file to get metadata
+                var firstDicomFile = await Task.Run(() => DicomFile.Open(dicomFilePaths[0]));
+                var firstDataset = firstDicomFile.Dataset;
+
+                // Extract metadata
+                int width = firstDataset.GetValue<ushort>(DicomTag.Columns, 0);
+                int height = firstDataset.GetValue<ushort>(DicomTag.Rows, 0);
+                int depth = dicomFilePaths.Count;
+                double pixelSpacingX = 1.0;
+                double pixelSpacingY = 1.0;
+                double sliceThickness = 1.0;
+
+                if (firstDataset.Contains(DicomTag.PixelSpacing))
+                {
+                    var pixelSpacing = firstDataset.GetValues<double>(DicomTag.PixelSpacing);
+                    if (pixelSpacing.Length >= 2)
+                    {
+                        pixelSpacingX = pixelSpacing[0];
+                        pixelSpacingY = pixelSpacing[1];
+                    }
+                }
+
+                if (firstDataset.Contains(DicomTag.SliceThickness))
+                {
+                    sliceThickness = firstDataset.GetValue<double>(DicomTag.SliceThickness, 0);
+                }
+
+                // Create the ReferenceCT object
                 var referenceCT = new ReferenceCT
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = type == "CBCT" ? $"CBCT_{patientId}" : $"ReferenceCT_{patientId}",
                     Path = directoryPath,
                     CreatedDate = DateTime.Now,
-                    DicomFiles = dicomFiles,
+                    DicomFiles = dicomFilePaths,
                     PatientId = patientId,
-                    Type = type
+                    Type = type,
+                    Width = width,
+                    Height = height,
+                    Depth = depth,
+                    PixelSpacingX = pixelSpacingX,
+                    PixelSpacingY = pixelSpacingY,
+                    SliceThickness = sliceThickness
                 };
 
-                // DICOM 메타데이터에서 이미지 정보 추출
-                if (firstDicom != null)
+                // Load pixel data from all slices
+                LogHelper.Log($"Loading pixel data for {depth} slices...");
+                short[] allPixelData = new short[width * height * depth];
+                int sliceSize = width * height;
+
+                // Use Parallel.For for potentially faster loading on multi-core systems
+                await Task.Run(() =>
                 {
-                    try
+                    Parallel.For(0, depth, i =>
                     {
-                        var dataset = firstDicom.Dataset;
-
-                        // 이미지 크기 정보 추출
-                        referenceCT.Width = dataset.GetValue<ushort>(DicomTag.Columns, 0);
-                        referenceCT.Height = dataset.GetValue<ushort>(DicomTag.Rows, 0);
-                        referenceCT.Depth = dicomFiles.Count; // 슬라이스 수
-
-                        // 픽셀 간격 정보 추출
-                        if (dataset.Contains(DicomTag.PixelSpacing))
+                        try
                         {
-                            var pixelSpacing = dataset.GetValues<double>(DicomTag.PixelSpacing);
-                            if (pixelSpacing.Length >= 2)
+                            var dicomFile = DicomFile.Open(dicomFilePaths[i]);
+                            var dataset = dicomFile.Dataset;
+
+                            // Check if PixelData tag exists
+                            if (dataset.Contains(DicomTag.PixelData))
                             {
-                                referenceCT.PixelSpacingX = pixelSpacing[0];
-                                referenceCT.PixelSpacingY = pixelSpacing[1];
+                                var pixelDataElement = dataset.GetDicomItem<DicomElement>(DicomTag.PixelData);
+                                var buffer = pixelDataElement.Buffer; // Get the buffer directly
+
+                                // Get metadata necessary for interpretation
+                                var pixelRepresentation = dataset.GetValue<ushort>(DicomTag.PixelRepresentation, 0);
+                                var bitsStored = dataset.GetValue<ushort>(DicomTag.BitsStored, 0);
+                                var highBit = dataset.GetValue<ushort>(DicomTag.HighBit, 0);
+                                var rescaleIntercept = dataset.GetValue<double>(DicomTag.RescaleIntercept, 0);
+                                var rescaleSlope = dataset.GetValue<double>(DicomTag.RescaleSlope, 0);
+
+                                // Ensure buffer is not null and has expected length for 16-bit data
+                                if (buffer != null && bitsStored == 16 && buffer.Size == sliceSize * 2)
+                                {
+                                    // Copy buffer segment to the correct position in the large array
+                                    Buffer.BlockCopy(buffer.Data, 0, allPixelData, i * sliceSize * sizeof(short), (int)buffer.Size);
+                                }
+                                else if (buffer == null)
+                                {
+                                    LogHelper.LogWarning($"Pixel data buffer is null in file {dicomFilePaths[i]}");
+                                }
+                                else
+                                {
+                                    // Handle other bit depths or formats if necessary
+                                    LogHelper.LogWarning($"Unsupported pixel format or unexpected buffer length in file {dicomFilePaths[i]}: BitsStored={bitsStored}, BufferLength={buffer.Size}, ExpectedLength={sliceSize * 2}");
+                                }
+                            }
+                            else
+                            {
+                                LogHelper.LogWarning($"PixelData tag not found in file {dicomFilePaths[i]}");
                             }
                         }
-
-                        // 슬라이스 두께 정보 추출
-                        if (dataset.Contains(DicomTag.SliceThickness))
+                        catch (Exception sliceEx)
                         {
-                            referenceCT.SliceThickness = dataset.GetValue<double>(DicomTag.SliceThickness, 0);
+                            LogHelper.LogError($"Error processing slice {i} ({Path.GetFileName(dicomFilePaths[i])}): {sliceEx.Message}");
+                            // Optionally fill this slice data with a default value (e.g., 0)
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogHelper.LogError($"Error extracting DICOM metadata: {ex.Message}");
-                    }
-                }
+                    });
+                });
 
-                LogHelper.Log($"Successfully loaded {type} for patient: {patientId}");
+                referenceCT.PixelData = allPixelData;
+                LogHelper.Log($"Successfully loaded pixel data for {type} ({width}x{height}x{depth}) for patient: {patientId}");
+
                 return referenceCT;
             }
             catch (Exception ex)
             {
                 LogHelper.LogError($"Error loading DICOM files: {ex.Message}");
+                LogHelper.LogException(ex);
                 return null;
             }
         }

@@ -111,25 +111,19 @@
                                  Margin="10,5"
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Top"/>
-						
-						<!-- Placeholder for CT image -->
-						<Border Background="#2D2D30" 
-                                Margin="10,30,10,10"
-                                IsVisible="{Binding ReferenceCT, Converter={StaticResource NullToVisibilityConverter}}">
-							<Grid>
-								<!-- Image will be displayed here -->
-								<TextBlock Text="Reference CT Center Slice" 
-                                         Foreground="White" 
-                                         HorizontalAlignment="Center" 
-                                         VerticalAlignment="Center"/>
-							</Grid>
-						</Border>
-						
-						<TextBlock Text="No Reference CT data available" 
-                                 Foreground="Gray" 
-                                 HorizontalAlignment="Center" 
+
+						<!-- Actual Image Control -->
+						<Image Source="{Binding RefCtCenterSliceBitmap}"
+                               Stretch="Uniform"
+                               Margin="10,30,10,10"
+                               IsVisible="{Binding RefCtCenterSliceBitmap, Converter={StaticResource NullToVisibilityConverter}}"/>
+
+						<!-- Placeholder Text when no image -->
+						<TextBlock Text="No Reference CT data available"
+                                 Foreground="Gray"
+                                 HorizontalAlignment="Center"
                                  VerticalAlignment="Center"
-                                 IsVisible="{Binding ReferenceCT, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=true}"/>
+                                 IsVisible="{Binding RefCtCenterSliceBitmap, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=true}"/>
 					</Grid>
 				</Border>
 
@@ -145,25 +139,19 @@
                                  Margin="10,5"
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Top"/>
-						
-						<!-- Placeholder for CBCT image -->
-						<Border Background="#2D2D30" 
-                                Margin="10,30,10,10"
-                                IsVisible="{Binding CBCT, Converter={StaticResource NullToVisibilityConverter}}">
-							<Grid>
-								<!-- Image will be displayed here -->
-								<TextBlock Text="CBCT Center Slice" 
-                                         Foreground="White" 
-                                         HorizontalAlignment="Center" 
-                                         VerticalAlignment="Center"/>
-							</Grid>
-						</Border>
-						
-						<TextBlock Text="No CBCT data available" 
-                                 Foreground="Gray" 
-                                 HorizontalAlignment="Center" 
+
+						<!-- Actual Image Control -->
+						<Image Source="{Binding CbctCenterSliceBitmap}"
+                               Stretch="Uniform"
+                               Margin="10,30,10,10"
+                               IsVisible="{Binding CbctCenterSliceBitmap, Converter={StaticResource NullToVisibilityConverter}}"/>
+
+						<!-- Placeholder Text when no image -->
+						<TextBlock Text="No CBCT data available"
+                                 Foreground="Gray"
+                                 HorizontalAlignment="Center"
                                  VerticalAlignment="Center"
-                                 IsVisible="{Binding CBCT, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=true}"/>
+                                 IsVisible="{Binding CbctCenterSliceBitmap, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=true}"/>
 					</Grid>
 				</Border>
 

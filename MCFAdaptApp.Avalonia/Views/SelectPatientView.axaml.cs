@@ -535,40 +535,40 @@ namespace MCFAdaptApp.Avalonia.Views
         private async void SelectReferencePlanButton_Click(object? sender, RoutedEventArgs e)
         {
             LogHelper.Log("SelectReferencePlanButton_Click: Handler triggered.");
-            
-            // Show loading overlay
+                
+                // Show loading overlay
             LogHelper.Log("SelectReferencePlanButton_Click: Attempting to show loading overlay.");
-            if (_loadingOverlay != null)
-            {
-                _loadingOverlay.IsVisible = true;
+                if (_loadingOverlay != null) 
+                {
+                    _loadingOverlay.IsVisible = true;
                 LogHelper.Log("SelectReferencePlanButton_Click: Loading overlay visibility set to true.");
-            }
-            else
-            {
+                }
+                else
+                {
                 LogHelper.LogWarning("SelectReferencePlanButton_Click: _loadingOverlay is null.");
-            }
-            
+                }
+                
             // Phase 1 - Update status text to "Loading CBCT Projections..."
             LogHelper.Log("SelectReferencePlanButton_Click: Phase 1 - Updating status text.");
-            if (_loadingStatusText != null)
-            {
-                _loadingStatusText.Text = "Loading CBCT Projections...";
+                if (_loadingStatusText != null) 
+                {
+                    _loadingStatusText.Text = "Loading CBCT Projections...";
                 LogHelper.Log("SelectReferencePlan_Click: Status text: Loading CBCT Projections...");
-            }
-            else
-            {
+                }
+                else
+                {
                 LogHelper.LogWarning("SelectReferencePlan_Click: _loadingStatusText is null.");
-            }
-            
+                }
+                
             LogHelper.Log("SelectReferencePlan_Click: Phase 1 - Starting delay.");
             await Task.Delay(2000);  // Simulate work for 2 seconds
             LogHelper.Log("SelectReferencePlan_Click: Phase 1 - Delay finished.");
-            
+                
             // Phase 2 - Update status text to "Loading Reference Plan Data..."
             LogHelper.Log("SelectReferencePlan_Click: Phase 2 - Updating status text.");
-            if (_loadingStatusText != null)
-            {
-                _loadingStatusText.Text = "Loading Reference Plan Data...";
+                if (_loadingStatusText != null)
+                {
+                    _loadingStatusText.Text = "Loading Reference Plan Data...";
                 LogHelper.Log("SelectReferencePlan_Click: Status text: Loading Reference Plan Data...");
             }
             
@@ -677,13 +677,13 @@ namespace MCFAdaptApp.Avalonia.Views
             
             if (!(visualRoot is MainWindow)) {
                 LogHelper.LogWarning("SelectReferencePlan_Click: Did not find MainWindow. Cannot navigate.");
-            }
-            
-            // Hide loading overlay
+                }
+                
+                // Hide loading overlay
             LogHelper.Log("SelectReferencePlan_Click: Attempting to hide loading overlay.");
-            if (_loadingOverlay != null)
-            {
-                _loadingOverlay.IsVisible = false;
+                if (_loadingOverlay != null)
+                {
+                    _loadingOverlay.IsVisible = false;
                 LogHelper.Log("SelectReferencePlan_Click: Loading overlay visibility set to false.");
             }
             else

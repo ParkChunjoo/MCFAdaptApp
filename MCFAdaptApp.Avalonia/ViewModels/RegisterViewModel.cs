@@ -3,6 +3,11 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using Avalonia.Threading;
+using Avalonia.Media;
 using MCFAdaptApp.Domain.Models;
 using MCFAdaptApp.Domain.Services;
 using MCFAdaptApp.Avalonia.Commands;
@@ -29,6 +34,8 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private string? _statusMessage;
         private bool _hasError;
         private string _errorMessage = string.Empty;
+        private Bitmap? _cbctCenterSliceBitmap;
+        private Bitmap? _refCtCenterSliceBitmap;
 
         /// <summary>
         /// CBCT 이미지 데이터
@@ -189,6 +196,32 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
+        /// Bitmap of the center slice of the CBCT volume
+        /// </summary>
+        public Bitmap? CbctCenterSliceBitmap
+        {
+            get => _cbctCenterSliceBitmap;
+            private set // Private setter as it's updated internally
+            {
+                _cbctCenterSliceBitmap = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Bitmap of the center slice of the Reference CT volume
+        /// </summary>
+        public Bitmap? RefCtCenterSliceBitmap
+        {
+            get => _refCtCenterSliceBitmap;
+            private set // Private setter as it's updated internally
+            {
+                _refCtCenterSliceBitmap = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
         /// 오류 메시지
         /// </summary>
         public string ErrorMessage
@@ -235,14 +268,28 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 IsLoading = true;
                 ClearError();
                 StatusMessage = "DICOM 파일을 로드하는 중...";
+                CbctCenterSliceBitmap = null; // Clear previous bitmaps
+                RefCtCenterSliceBitmap = null;
 
                 // CBCT 로드
                 StatusMessage = "CBCT 프로젝션 로드 중...";
                 CBCT = await _dicomService.LoadCBCTAsync(PatientId);
+                if (CBCT?.PixelData != null)
+                {
+                    StatusMessage = "CBCT 슬라이스 생성 중...";
+                    // Run bitmap creation on a background thread to avoid blocking UI
+                    CbctCenterSliceBitmap = await Task.Run(() => CreateBitmapFromSlice(CBCT));
+                }
 
                 // 참조 CT 로드
                 StatusMessage = "참조 CT 로드 중...";
                 ReferenceCT = await _dicomService.LoadReferenceCTAsync(PatientId);
+                if (ReferenceCT?.PixelData != null)
+                {
+                    StatusMessage = "참조 CT 슬라이스 생성 중...";
+                    // Run bitmap creation on a background thread
+                    RefCtCenterSliceBitmap = await Task.Run(() => CreateBitmapFromSlice(ReferenceCT));
+                }
 
                 StatusMessage = "RT Structure 로드 중...";
                 RTStructure = await _dicomService.LoadRTStructureAsync(PatientId);
@@ -253,18 +300,10 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 StatusMessage = "RT Dose 로드 중...";
                 RTDose = await _dicomService.LoadRTDoseAsync(PatientId);
 
-                // If we have a selected reference plan but haven't loaded its CT yet,
-                // try to load it specifically
-                if (SelectedReferencePlan != null && ReferenceCT == null)
-                {
-                    // This is a placeholder for loading CT from a specific plan
-                    // You might want to modify your IDicomService to support this
-                    // ReferenceCT = await _dicomService.LoadReferenceCTFromPlanAsync(SelectedReferencePlan);
-                }
-
                 if (CBCT == null && ReferenceCT == null)
                 {
                     ErrorMessage = "DICOM 파일을 찾을 수 없습니다.";
+                    StatusMessage = "오류 발생";
                     return;
                 }
 
@@ -273,10 +312,83 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             catch (Exception ex)
             {
                 ErrorMessage = $"DICOM 파일 로드 중 오류 발생: {ex.Message}";
+                LogHelper.LogException(ex);
+                StatusMessage = "오류 발생";
             }
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        private Bitmap? CreateBitmapFromSlice(ReferenceCT ctVolume)
+        {
+            if (ctVolume?.PixelData == null || ctVolume.Width <= 0 || ctVolume.Height <= 0 || ctVolume.Depth <= 0)
+            {
+                return null;
+            }
+
+            try
+            {
+                int width = ctVolume.Width;
+                int height = ctVolume.Height;
+                int centerSliceIndex = ctVolume.Depth / 2;
+                int sliceSize = width * height;
+                int startOffset = centerSliceIndex * sliceSize;
+
+                // Extract center slice data
+                short[] slicePixels = new short[sliceSize];
+                Buffer.BlockCopy(ctVolume.PixelData, startOffset * sizeof(short), slicePixels, 0, sliceSize * sizeof(short));
+
+                // Find min/max pixel values for windowing (simple approach)
+                short minPixel = short.MaxValue;
+                short maxPixel = short.MinValue;
+                for (int i = 0; i < slicePixels.Length; i++)
+                {
+                    if (slicePixels[i] < minPixel) minPixel = slicePixels[i];
+                    if (slicePixels[i] > maxPixel) maxPixel = slicePixels[i];
+                }
+
+                // Define window level/width (adjust these for better contrast if needed)
+                double windowCenter = (maxPixel + minPixel) / 2.0;
+                double windowWidth = maxPixel - minPixel;
+                if (windowWidth == 0) windowWidth = 1; // Avoid division by zero
+                double windowMin = windowCenter - windowWidth / 2.0;
+
+                // Create a WriteableBitmap
+                var bitmap = new WriteableBitmap(
+                    new PixelSize(width, height),
+                    new Vector(96, 96),
+                    PixelFormat.Bgra8888,
+                    AlphaFormat.Premul);
+
+                using (var frameBuffer = bitmap.Lock())
+                {
+                    unsafe // Use unsafe context for direct pointer access to framebuffer
+                    {
+                        uint* pixels = (uint*)frameBuffer.Address;
+                        for (int i = 0; i < sliceSize; i++)
+                        {
+                            // Get the 16-bit pixel value
+                            short rawValue = slicePixels[i];
+
+                            // Apply windowing to map to 0-255 grayscale
+                            double scaledValue = (rawValue - windowMin) / windowWidth;
+                            byte grayValue = (byte)Math.Clamp(scaledValue * 255.0, 0, 255);
+
+                            // Set Bgra8888 pixel (Alpha = 255, R=G=B=grayValue)
+                            pixels[i] = (uint)((255 << 24) | (grayValue << 16) | (grayValue << 8) | grayValue);
+                        }
+                    }
+                }
+
+                return bitmap;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError($"Error creating bitmap from slice for {ctVolume.Name}: {ex.Message}");
+                LogHelper.LogException(ex);
+                return null;
             }
         }
 

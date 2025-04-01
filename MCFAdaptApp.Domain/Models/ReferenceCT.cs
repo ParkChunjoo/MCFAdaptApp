@@ -56,5 +56,10 @@ namespace MCFAdaptApp.Domain.Models
         /// CT 유형 (CBCT 또는 ReferenceCT)
         /// </summary>
         public string Type { get; set; }
+
+        /// <summary>
+        /// Raw pixel data for the entire volume (Width * Height * Depth)
+        /// </summary>
+        public short[]? PixelData { get; set; }
     }
 } 
