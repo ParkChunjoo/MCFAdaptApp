@@ -18,6 +18,9 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private readonly IDicomService _dicomService;
         private ReferenceCT? _cbct;
         private ReferenceCT? _referenceCT;
+        private RTStructure? _rtStructure;
+        private RTPlan? _rtPlan;
+        private RTDose? _rtDose;
         private string _patientId = string.Empty;
         private Patient? _patient;
         private AnatomyModel? _selectedAnatomyModel;
@@ -49,6 +52,42 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             set
             {
                 _referenceCT = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// </summary>
+        public RTStructure RTStructure
+        {
+            get => _rtStructure;
+            set
+            {
+                _rtStructure = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// </summary>
+        public RTPlan RTPlan
+        {
+            get => _rtPlan;
+            set
+            {
+                _rtPlan = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// </summary>
+        public RTDose RTDose
+        {
+            get => _rtDose;
+            set
+            {
+                _rtDose = value;
                 OnPropertyChanged();
             }
         }
@@ -175,7 +214,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         public RegisterViewModel(IDicomService dicomService)
         {
             _dicomService = dicomService ?? throw new ArgumentNullException(nameof(dicomService));
-            
+
             // 명령 초기화
             LoadDicomFilesCommand = new AsyncRelayCommand(LoadDicomFilesAsync, () => !IsLoading);
         }
@@ -198,10 +237,21 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 StatusMessage = "DICOM 파일을 로드하는 중...";
 
                 // CBCT 로드
+                StatusMessage = "CBCT 프로젝션 로드 중...";
                 CBCT = await _dicomService.LoadCBCTAsync(PatientId);
-                
+
                 // 참조 CT 로드
+                StatusMessage = "참조 CT 로드 중...";
                 ReferenceCT = await _dicomService.LoadReferenceCTAsync(PatientId);
+
+                StatusMessage = "RT Structure 로드 중...";
+                RTStructure = await _dicomService.LoadRTStructureAsync(PatientId);
+
+                StatusMessage = "RT Plan 로드 중...";
+                RTPlan = await _dicomService.LoadRTPlanAsync(PatientId);
+
+                StatusMessage = "RT Dose 로드 중...";
+                RTDose = await _dicomService.LoadRTDoseAsync(PatientId);
 
                 // If we have a selected reference plan but haven't loaded its CT yet,
                 // try to load it specifically
@@ -274,7 +324,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             Patient = patient;
             SelectedAnatomyModel = anatomyModel;
             SelectedReferencePlan = referencePlan;
-            
+
             // If PatientId is set (from the Patient object), load DICOM files
             if (!string.IsNullOrEmpty(PatientId))
             {
