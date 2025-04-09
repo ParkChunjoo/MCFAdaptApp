@@ -25,21 +25,42 @@ namespace MCFAdaptApp.Avalonia
 
         public override void OnFrameworkInitializationCompleted()
         {
-            var services = new ServiceCollection();
-            ConfigureServices(services);
-            _serviceProvider = services.BuildServiceProvider();
+            LogHelper.Log("Starting OnFrameworkInitializationCompleted");
+            try 
+            { 
+                var services = new ServiceCollection();
+                LogHelper.Log("Configuring services...");
+                ConfigureServices(services);
+                LogHelper.Log("Building service provider...");
+                _serviceProvider = services.BuildServiceProvider();
+                LogHelper.Log("Service provider built.");
 
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                LogHelper.Log("Application starting up");
-                
-                var loginView = _serviceProvider.GetService<LoginView>() ?? throw new InvalidOperationException("Failed to resolve LoginView from service provider");
-                desktop.MainWindow = loginView;
-                
-                LogHelper.Log("Login view displayed");
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                {
+                    LogHelper.Log("Application lifetime is ClassicDesktopStyleApplicationLifetime.");
+                    LogHelper.Log("Resolving LoginView...");
+                    var loginView = _serviceProvider.GetService<LoginView>() ?? throw new InvalidOperationException("Failed to resolve LoginView from service provider");
+                    LogHelper.Log("LoginView resolved.");
+                    desktop.MainWindow = loginView;
+                    LogHelper.Log("MainWindow assigned.");
+                    
+                    LogHelper.Log("Login view displayed");
+                }
+                else 
+                {
+                    LogHelper.LogWarning("Application lifetime is NOT ClassicDesktopStyleApplicationLifetime.");
+                }
+
+                LogHelper.Log("Calling base.OnFrameworkInitializationCompleted()...");
+                base.OnFrameworkInitializationCompleted();
+                LogHelper.Log("Finished OnFrameworkInitializationCompleted.");
             }
-
-            base.OnFrameworkInitializationCompleted();
+            catch (Exception ex)
+            {
+                LogHelper.LogError("FATAL ERROR during application startup in OnFrameworkInitializationCompleted");
+                LogHelper.LogException(ex);
+                throw; 
+            }
         }
 
         private void ConfigureServices(ServiceCollection services)

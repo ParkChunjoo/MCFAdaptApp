@@ -61,5 +61,10 @@ namespace MCFAdaptApp.Domain.Models
         /// Raw pixel data for the entire volume (Width * Height * Depth)
         /// </summary>
         public short[]? PixelData { get; set; }
+
+        /// <summary>
+        /// The index of the slice to be displayed (e.g., center slice or isocenter slice)
+        /// </summary>
+        public int DisplaySliceIndex { get; set; }
     }
 } 

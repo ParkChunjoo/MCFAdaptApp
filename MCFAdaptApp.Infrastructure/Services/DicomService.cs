@@ -60,10 +60,11 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// 지정된 경로에서 참조 CT DICOM 파일을 로드합니다.
         /// </summary>
         /// <param name="patientId">환자 ID</param>
+        /// <param name="isocenterZ">Optional isocenter Z coordinate</param>
         /// <returns>로드된 참조 CT 객체</returns>
-        public async Task<ReferenceCT> LoadReferenceCTAsync(string patientId)
+        public async Task<ReferenceCT> LoadReferenceCTAsync(string patientId, double? isocenterZ = null)
         {
-            LogHelper.Log($"Loading Reference CT DICOM files for patient: {patientId}");
+            LogHelper.Log($"Loading Reference CT DICOM files for patient: {patientId}" + (isocenterZ.HasValue ? $" near Z={isocenterZ.Value}" : ""));
 
             string planDataPath = Path.Combine(_basePath, _planDataFolder);
 
@@ -73,7 +74,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                 return null;
             }
 
-            return await LoadDicomFilesAsync(planDataPath, patientId, "ReferenceCT");
+            return await LoadDicomFilesAsync(planDataPath, patientId, "ReferenceCT", isocenterZ);
         }
 
         /// <summary>
@@ -99,6 +100,8 @@ namespace MCFAdaptApp.Infrastructure.Services
                 {
                     return Directory.GetFiles(planDataPath, "RS*.dcm", SearchOption.AllDirectories)
                         .Union(Directory.GetFiles(planDataPath, "RS*.DCM", SearchOption.AllDirectories))
+                        .Union(Directory.GetFiles(planDataPath, "RS*.dicom", SearchOption.AllDirectories))
+                        .Union(Directory.GetFiles(planDataPath, "RS*.DICOM", SearchOption.AllDirectories))
                         .ToList();
                 });
 
@@ -175,16 +178,29 @@ namespace MCFAdaptApp.Infrastructure.Services
                 {
                     return Directory.GetFiles(planDataPath, "RP*.dcm", SearchOption.AllDirectories)
                         .Union(Directory.GetFiles(planDataPath, "RP*.DCM", SearchOption.AllDirectories))
+                        .Union(Directory.GetFiles(planDataPath, "RP*.dicom", SearchOption.AllDirectories))
+                        .Union(Directory.GetFiles(planDataPath, "RP*.DICOM", SearchOption.AllDirectories))
                         .ToList();
                 });
 
                 if (rtPlanFiles.Count == 0)
                 {
+                    // Extended logging - list all files in the directory to help diagnose the issue
+                    var allFiles = await Task.Run(() => Directory.GetFiles(planDataPath, "*.*", SearchOption.AllDirectories));
                     LogHelper.LogWarning($"No RT Plan files found in: {planDataPath}");
+                    LogHelper.Log($"Directory contains {allFiles.Length} files. First 10 files (or less):");
+                    for (int i = 0; i < Math.Min(10, allFiles.Length); i++)
+                    {
+                        LogHelper.Log($"  - {Path.GetFileName(allFiles[i])}");
+                    }
                     return null;
                 }
 
                 LogHelper.Log($"Found {rtPlanFiles.Count} RT Plan files");
+                foreach (var rtPlanFile in rtPlanFiles)
+                {
+                    LogHelper.Log($"  - {Path.GetFileName(rtPlanFile)}");
+                }
 
                 var dicomFile = await Task.Run(() => DicomFile.Open(rtPlanFiles[0]));
                 var dataset = dicomFile.Dataset;
@@ -209,6 +225,57 @@ namespace MCFAdaptApp.Infrastructure.Services
                     if (dataset.Contains(DicomTag.RTPlanDescription))
                     {
                         rtPlan.PlanDescription = dataset.GetString(DicomTag.RTPlanDescription);
+                    }
+
+                    // First try to get isocenter position directly (though this is uncommon)
+                    if (dataset.Contains(DicomTag.IsocenterPosition))
+                    {
+                        rtPlan.IsocenterPosition = dataset.GetValues<double>(DicomTag.IsocenterPosition);
+                        LogHelper.Log($"Extracted Isocenter using top-level tag (300a,012c): X={rtPlan.IsocenterPosition[0]}, Y={rtPlan.IsocenterPosition[1]}, Z={rtPlan.IsocenterPosition[2]}");
+                    }
+                    // If not found at top level, look in BeamSequence (more common location)
+                    else if (dataset.Contains(DicomTag.BeamSequence))
+                    {
+                        LogHelper.Log("Looking for isocenter position in BeamSequence...");
+                        var beamSequence = dataset.GetSequence(DicomTag.BeamSequence);
+
+                        // Try to find isocenter in any beam
+                        bool foundIsocenter = false;
+                        foreach (var beamItem in beamSequence)
+                        {
+                            if (beamItem.Contains(DicomTag.IsocenterPosition))
+                            {
+                                rtPlan.IsocenterPosition = beamItem.GetValues<double>(DicomTag.IsocenterPosition);
+                                LogHelper.Log($"Extracted Isocenter from BeamSequence: X={rtPlan.IsocenterPosition[0]}, Y={rtPlan.IsocenterPosition[1]}, Z={rtPlan.IsocenterPosition[2]}");
+                                foundIsocenter = true;
+                                break;
+                            }
+                            // Also check in ControlPointSequence if present
+                            else if (beamItem.Contains(DicomTag.ControlPointSequence))
+                            {
+                                var controlPointSequence = beamItem.GetSequence(DicomTag.ControlPointSequence);
+                                foreach (var controlPoint in controlPointSequence)
+                                {
+                                    if (controlPoint.Contains(DicomTag.IsocenterPosition))
+                                    {
+                                        rtPlan.IsocenterPosition = controlPoint.GetValues<double>(DicomTag.IsocenterPosition);
+                                        LogHelper.Log($"Extracted Isocenter from ControlPointSequence: X={rtPlan.IsocenterPosition[0]}, Y={rtPlan.IsocenterPosition[1]}, Z={rtPlan.IsocenterPosition[2]}");
+                                        foundIsocenter = true;
+                                        break;
+                                    }
+                                }
+                                if (foundIsocenter) break;
+                            }
+                        }
+
+                        if (!foundIsocenter)
+                        {
+                            LogHelper.LogWarning("Could not find IsocenterPosition in BeamSequence or ControlPointSequence");
+                        }
+                    }
+                    else
+                    {
+                        LogHelper.LogWarning("RT Plan file does not contain IsocenterPosition tag (300a,012c) or BeamSequence");
                     }
                 }
                 catch (Exception ex)
@@ -249,6 +316,8 @@ namespace MCFAdaptApp.Infrastructure.Services
                 {
                     return Directory.GetFiles(planDataPath, "RD*.dcm", SearchOption.AllDirectories)
                         .Union(Directory.GetFiles(planDataPath, "RD*.DCM", SearchOption.AllDirectories))
+                        .Union(Directory.GetFiles(planDataPath, "RD*.dicom", SearchOption.AllDirectories))
+                        .Union(Directory.GetFiles(planDataPath, "RD*.DICOM", SearchOption.AllDirectories))
                         .ToList();
                 });
 
@@ -319,20 +388,41 @@ namespace MCFAdaptApp.Infrastructure.Services
         /// <param name="directoryPath">DICOM 파일이 있는 디렉토리 경로</param>
         /// <param name="patientId">환자 ID</param>
         /// <param name="type">CT 유형 (CBCT 또는 ReferenceCT)</param>
+        /// <param name="isocenterZ">Optional Z-coordinate of the isocenter (used for ReferenceCT)</param>
         /// <returns>로드된 ReferenceCT 객체</returns>
-        public async Task<ReferenceCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type)
+        public async Task<ReferenceCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type, double? isocenterZ = null)
         {
             try
             {
                 LogHelper.Log($"Searching for DICOM files in: {directoryPath}");
 
                 // Find all DICOM files in the directory
-                var dicomFilePaths = await Task.Run(() =>
+                var allDcmFiles = await Task.Run(() =>
                 {
                     return Directory.GetFiles(directoryPath, "*.dcm", SearchOption.AllDirectories)
                         .Union(Directory.GetFiles(directoryPath, "*.DCM", SearchOption.AllDirectories))
+                        .Union(Directory.GetFiles(directoryPath, "*.dicom", SearchOption.AllDirectories))
+                        .Union(Directory.GetFiles(directoryPath, "*.DICOM", SearchOption.AllDirectories))
                         .ToList();
                 });
+
+                // Filter for CT Modality only
+                var dicomFilePaths = new List<string>();
+                foreach (var filePath in allDcmFiles)
+                {
+                    try
+                    {
+                        var dcm = DicomFile.Open(filePath, FileReadOption.SkipLargeTags);
+                        if (dcm.Dataset.GetSingleValueOrDefault(DicomTag.Modality, "") == "CT")
+                        {
+                            dicomFilePaths.Add(filePath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogWarning($"Could not read modality from {filePath}, skipping: {ex.Message}");
+                    }
+                }
 
                 if (dicomFilePaths.Count == 0)
                 {
@@ -373,6 +463,77 @@ namespace MCFAdaptApp.Infrastructure.Services
                     sliceThickness = firstDataset.GetValue<double>(DicomTag.SliceThickness, 0);
                 }
 
+                // --- Determine Slice Index ---
+                int displaySliceIndex = depth / 2; // Default to center slice
+
+                if (type == "ReferenceCT" && isocenterZ.HasValue)
+                {
+                    LogHelper.Log($"Finding ReferenceCT slice closest to Isocenter Z: {isocenterZ.Value}");
+                    int closestSliceIdx = -1;
+                    double minDifference = double.MaxValue;
+
+                    // Iterate through files to find the Z position of each slice
+                    for (int i = 0; i < depth; i++)
+                    {
+                        try
+                        {
+                            var dcm = DicomFile.Open(dicomFilePaths[i]);
+                            if (dcm.Dataset.Contains(DicomTag.ImagePositionPatient))
+                            {
+                                var imagePosition = dcm.Dataset.GetValues<double>(DicomTag.ImagePositionPatient);
+                                if (imagePosition != null && imagePosition.Length == 3)
+                                {
+                                    double sliceZ = imagePosition[2];
+                                    double diff = Math.Abs(sliceZ - isocenterZ.Value);
+                                    if (diff < minDifference)
+                                    {
+                                        minDifference = diff;
+                                        closestSliceIdx = i;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.LogWarning($"Could not read ImagePositionPatient from {dicomFilePaths[i]}: {ex.Message}");
+                        }
+                    }
+
+                    if (closestSliceIdx != -1)
+                    {
+                        displaySliceIndex = closestSliceIdx;
+                        LogHelper.Log($"Found closest slice at index {displaySliceIndex} (Z={DicomFile.Open(dicomFilePaths[displaySliceIndex]).Dataset.GetValues<double>(DicomTag.ImagePositionPatient)[2]}) with difference {minDifference}");
+                    }
+                    else
+                    {
+                        LogHelper.LogWarning("Could not determine closest slice based on ImagePositionPatient. Defaulting to center slice.");
+                    }
+                }
+                else if (type == "ReferenceCT" && !isocenterZ.HasValue)
+                {
+                    LogHelper.Log("Isocenter Z not provided for ReferenceCT. Defaulting to center slice.");
+                    LogHelper.Log($"Display slice index set to center slice: {displaySliceIndex} of {depth} total slices");
+
+                    // Log slice position information for the center slice
+                    try
+                    {
+                        var centerSliceDcm = DicomFile.Open(dicomFilePaths[displaySliceIndex]);
+                        if (centerSliceDcm.Dataset.Contains(DicomTag.ImagePositionPatient))
+                        {
+                            var centerPos = centerSliceDcm.Dataset.GetValues<double>(DicomTag.ImagePositionPatient);
+                            if (centerPos != null && centerPos.Length == 3)
+                            {
+                                LogHelper.Log($"Center slice position: X={centerPos[0]}, Y={centerPos[1]}, Z={centerPos[2]}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.LogWarning($"Could not read position of center slice: {ex.Message}");
+                    }
+                }
+                // --- End Determine Slice Index ---
+
                 // Create the ReferenceCT object
                 var referenceCT = new ReferenceCT
                 {
@@ -388,7 +549,8 @@ namespace MCFAdaptApp.Infrastructure.Services
                     Depth = depth,
                     PixelSpacingX = pixelSpacingX,
                     PixelSpacingY = pixelSpacingY,
-                    SliceThickness = sliceThickness
+                    SliceThickness = sliceThickness,
+                    DisplaySliceIndex = displaySliceIndex
                 };
 
                 // Load pixel data from all slices

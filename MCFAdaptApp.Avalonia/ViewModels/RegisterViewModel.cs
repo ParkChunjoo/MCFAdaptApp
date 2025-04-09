@@ -270,32 +270,48 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 StatusMessage = "DICOM 파일을 로드하는 중...";
                 CbctCenterSliceBitmap = null; // Clear previous bitmaps
                 RefCtCenterSliceBitmap = null;
+                RTStructure = null;
+                RTPlan = null;
+                RTDose = null;
+                CBCT = null;
+                ReferenceCT = null;
 
-                // CBCT 로드
+                // 1. Load RT Plan first to get isocenter
+                StatusMessage = "RT Plan 로드 중...";
+                RTPlan = await _dicomService.LoadRTPlanAsync(PatientId);
+                double? isocenterZ = RTPlan?.IsocenterPosition?.Length == 3 ? RTPlan.IsocenterPosition[2] : null;
+                
+                // Log detailed isocenter information
+                if (RTPlan?.IsocenterPosition != null && RTPlan.IsocenterPosition.Length == 3)
+                {
+                    LogHelper.Log($"Using RTPlan isocenter position: X={RTPlan.IsocenterPosition[0]}, Y={RTPlan.IsocenterPosition[1]}, Z={RTPlan.IsocenterPosition[2]}");
+                }
+                else
+                {
+                    LogHelper.Log("RTPlan isocenter position not available - IsocenterPosition tag may be missing from RT Plan file");
+                }
+                
+                // 2. Load CBCT
                 StatusMessage = "CBCT 프로젝션 로드 중...";
                 CBCT = await _dicomService.LoadCBCTAsync(PatientId);
                 if (CBCT?.PixelData != null)
                 {
                     StatusMessage = "CBCT 슬라이스 생성 중...";
-                    // Run bitmap creation on a background thread to avoid blocking UI
                     CbctCenterSliceBitmap = await Task.Run(() => CreateBitmapFromSlice(CBCT));
                 }
 
-                // 참조 CT 로드
+                // 3. Load Reference CT (pass isocenter Z)
                 StatusMessage = "참조 CT 로드 중...";
-                ReferenceCT = await _dicomService.LoadReferenceCTAsync(PatientId);
+                ReferenceCT = await _dicomService.LoadReferenceCTAsync(PatientId, isocenterZ);
                 if (ReferenceCT?.PixelData != null)
                 {
                     StatusMessage = "참조 CT 슬라이스 생성 중...";
-                    // Run bitmap creation on a background thread
                     RefCtCenterSliceBitmap = await Task.Run(() => CreateBitmapFromSlice(ReferenceCT));
                 }
 
+                // 4. Load other RT data
                 StatusMessage = "RT Structure 로드 중...";
                 RTStructure = await _dicomService.LoadRTStructureAsync(PatientId);
-
-                StatusMessage = "RT Plan 로드 중...";
-                RTPlan = await _dicomService.LoadRTPlanAsync(PatientId);
 
                 StatusMessage = "RT Dose 로드 중...";
                 RTDose = await _dicomService.LoadRTDoseAsync(PatientId);
@@ -332,11 +348,18 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 int width = ctVolume.Width;
                 int height = ctVolume.Height;
-                int centerSliceIndex = ctVolume.Depth / 2;
+                // Use the pre-calculated display slice index
+                int displaySliceIndex = ctVolume.DisplaySliceIndex; 
+                if (displaySliceIndex < 0 || displaySliceIndex >= ctVolume.Depth)
+                {
+                    LogHelper.LogWarning($"Invalid DisplaySliceIndex ({displaySliceIndex}) for volume depth {ctVolume.Depth}. Defaulting to center.");
+                    displaySliceIndex = ctVolume.Depth / 2; // Fallback to center if index is invalid
+                }
+                
                 int sliceSize = width * height;
-                int startOffset = centerSliceIndex * sliceSize;
+                int startOffset = displaySliceIndex * sliceSize;
 
-                // Extract center slice data
+                // Extract slice data using the determined index
                 short[] slicePixels = new short[sliceSize];
                 Buffer.BlockCopy(ctVolume.PixelData, startOffset * sizeof(short), slicePixels, 0, sliceSize * sizeof(short));
 

@@ -18,7 +18,14 @@ namespace MCFAdaptApp.Domain.Models
 
         public string PlanLabel { get; set; }
 
+        /// RTPlan 설명
+        /// </summary>
         public string PlanDescription { get; set; }
+
+        /// <summary>
+        /// Isocenter position [X, Y, Z]
+        /// </summary>
+        public double[]? IsocenterPosition { get; set; }
 
         public string ReferenceCTId { get; set; }
 

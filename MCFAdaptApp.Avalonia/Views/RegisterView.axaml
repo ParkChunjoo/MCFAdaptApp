@@ -101,12 +101,12 @@
 
 				<!-- Reference CT Center Slice (Top Left) -->
 				<Border Grid.Column="0" Grid.Row="0"
-                        Background="#1E1E1E"
+                        Background="#000000"
                         BorderBrush="#3F3F46"
                         BorderThickness="1"
                         Margin="2">
 					<Grid>
-						<TextBlock Text="Reference CT - Center Slice"
+						<TextBlock Text="Reference CT - Isocenter Slice"
                                  Foreground="White"
                                  Margin="10,5"
                                  HorizontalAlignment="Left"
@@ -129,7 +129,7 @@
 
 				<!-- CBCT Center Slice (Top Right) -->
 				<Border Grid.Column="1" Grid.Row="0"
-                        Background="#1E1E1E"
+                        Background="#000000"
                         BorderBrush="#3F3F46"
                         BorderThickness="1"
                         Margin="2">

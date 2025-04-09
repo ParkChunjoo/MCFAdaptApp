@@ -20,8 +20,9 @@ namespace MCFAdaptApp.Domain.Services
         /// 지정된 경로에서 참조 CT DICOM 파일을 로드합니다.
         /// </summary>
         /// <param name="patientId">환자 ID</param>
+        /// <param name="isocenterZ">Optional isocenter Z coordinate</param>
         /// <returns>로드된 참조 CT 객체</returns>
-        Task<ReferenceCT> LoadReferenceCTAsync(string patientId);
+        Task<ReferenceCT> LoadReferenceCTAsync(string patientId, double? isocenterZ = null);
 
         /// <summary>
         /// </summary>
@@ -44,7 +45,8 @@ namespace MCFAdaptApp.Domain.Services
         /// <param name="directoryPath">DICOM 파일이 있는 디렉토리 경로</param>
         /// <param name="patientId">환자 ID</param>
         /// <param name="type">CT 유형 (CBCT 또는 ReferenceCT)</param>
+        /// <param name="isocenterZ">Optional isocenter Z coordinate</param>
         /// <returns>로드된 ReferenceCT 객체</returns>
-        Task<ReferenceCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type);
+        Task<ReferenceCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type, double? isocenterZ = null);
     }
 }
