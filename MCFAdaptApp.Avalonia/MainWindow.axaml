@@ -88,8 +88,9 @@
 		<!-- Patient info and tabs bar -->
 		<Grid Grid.Row="1" Background="#FF1E1E1E">
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="Auto"/> <!-- Patient Info -->
-				<ColumnDefinition Width="*"/> <!-- Tabs -->
+				<ColumnDefinition Width="Auto"/> <!-- Patient Info / Logo -->
+				<ColumnDefinition Width="*"/> <!-- Tool Buttons Container -->
+				<ColumnDefinition Width="Auto"/> <!-- Tabs -->
 			</Grid.ColumnDefinitions>
 
 			<!-- Patient Info panel (left side) -->
@@ -116,14 +117,50 @@
 			</StackPanel>
 
 			<!-- MCF-Adapt Logo Text (visible when patient info is hidden) -->
-			<Border Grid.Column="0" x:Name="LogoContainer" Background="White" Width="60" Height="60" 
+			<Border Grid.Column="0" x:Name="LogoContainer" Background="White" Width="60" Height="60"
 				   Margin="10,5,10,5" VerticalAlignment="Center" CornerRadius="3" IsVisible="True">
-				<Image x:Name="LogoImage" Source="avares://MCFAdaptApp.Avalonia/Resources/Images/Mayo_Clinic_logo.png" 
+				<Image x:Name="LogoImage" Source="avares://MCFAdaptApp.Avalonia/Resources/Images/Mayo_Clinic_logo.png"
 					   Stretch="Uniform" Margin="8"/>
 			</Border>
 
+			<!-- Tool Buttons (center) -->
+			<StackPanel Grid.Column="1" Orientation="Horizontal" Name="ToolButtonsPanel" IsVisible="False" Margin="20,5,20,5" VerticalAlignment="Center" HorizontalAlignment="Center">
+				<!-- Zoom Button -->
+				<Button Width="55" Height="55" Margin="5,0" Background="Transparent" BorderThickness="0" Name="ZoomButton" ToolTip.Tip="Zoom">
+					<Image Source="avares://MCFAdaptApp.Avalonia/Resources/Images/Spyglass.png" Width="55" Height="55"/>
+				</Button>
+
+				<!-- Pan Button -->
+				<Button Width="55" Height="55" Margin="5,0" Background="Transparent" BorderThickness="0" Name="PanButton" ToolTip.Tip="Pan">
+					<Image Source="avares://MCFAdaptApp.Avalonia/Resources/Images/Pan.png" Width="55" Height="55"/>
+				</Button>
+
+				<!-- Measure Button -->
+				<Button Width="55" Height="55" Margin="5,0" Background="Transparent" BorderThickness="0" Name="MeasureButton" ToolTip.Tip="Measure">
+					<Image Source="avares://MCFAdaptApp.Avalonia/Resources/Images/Ruler.png" Width="55" Height="55"/>
+				</Button>
+
+				<!-- Divider -->
+				<Separator Width="1" Height="40" Background="#FF3E3E42" Margin="10,0" VerticalAlignment="Center"/>
+
+				<!-- AutoRigid Button -->
+				<Button Width="55" Height="55" Margin="5,0" Background="Transparent" BorderThickness="0" Name="AutoRigidButton" ToolTip.Tip="Auto Rigid Registration">
+					<Image Source="avares://MCFAdaptApp.Avalonia/Resources/Images/AutoRigid.png" Width="55" Height="55"/>
+				</Button>
+
+				<!-- ManualRigid Button -->
+				<Button Width="55" Height="55" Margin="5,0" Background="Transparent" BorderThickness="0" Name="ManualRigidButton" ToolTip.Tip="Manual Rigid Registration">
+					<Image Source="avares://MCFAdaptApp.Avalonia/Resources/Images/ManualRigid.png" Width="55" Height="55"/>
+				</Button>
+
+				<!-- Deform Button -->
+				<Button Width="55" Height="55" Margin="5,0" Background="Transparent" BorderThickness="0" Name="DeformButton" ToolTip.Tip="Deformable Registration">
+					<Image Source="avares://MCFAdaptApp.Avalonia/Resources/Images/Deform.png" Width="55" Height="55"/>
+				</Button>
+			</StackPanel>
+
 			<!-- Tab Items (right side) -->
-			<TabControl Grid.Column="1" x:Name="MainTabControl" TabStripPlacement="Top"
+			<TabControl Grid.Column="2" x:Name="MainTabControl" TabStripPlacement="Top"
 					  Margin="0,0,0,0" Padding="0" BorderThickness="0">
 				<TabControl.Styles>
 					<!-- Override TabControl template to hide content area -->
@@ -134,7 +171,7 @@
 									<Border DockPanel.Dock="Top" BorderThickness="0"
 										  Padding="0" Margin="0">
 										<ItemsPresenter Name="PART_ItemsPresenter"
-													  ItemsPanel="{TemplateBinding ItemsPanel}" 
+													  ItemsPanel="{TemplateBinding ItemsPanel}"
 													  HorizontalAlignment="Right"/>
 									</Border>
 									<ContentPresenter Name="PART_SelectedContentHost"

@@ -16,7 +16,7 @@ namespace MCFAdaptApp.Avalonia
         private Button? _restoreMaximizeButton;
         private Button? _closeButton;
         private Grid? _headerBar;
-        
+
         // Patient info panel controls
         private StackPanel? _patientInfoPanel;
         private StackPanel? _patientInfoTextPanel;
@@ -28,6 +28,15 @@ namespace MCFAdaptApp.Avalonia
         private TextBlock? _referencePlanText;
         private Border? _logoContainer;
         private Image? _logoImage;
+
+        // Tool buttons panel
+        private StackPanel? _toolButtonsPanel;
+        private Button? _zoomButton;
+        private Button? _panButton;
+        private Button? _measureButton;
+        private Button? _autoRigidButton;
+        private Button? _manualRigidButton;
+        private Button? _deformButton;
 
         // Content views
         private Control? _patientView;
@@ -63,7 +72,7 @@ namespace MCFAdaptApp.Avalonia
             _restoreMaximizeButton = this.FindControl<Button>("RestoreMaximizeButton");
             _closeButton = this.FindControl<Button>("CloseButton");
             _headerBar = this.FindControl<Grid>("HeaderBar");
-            
+
             // Initialize patient info panel controls - updated to match new structure
             _patientInfoPanel = this.FindControl<StackPanel>("PatientInfoPanel");
             _patientInfoTextPanel = this.FindControl<StackPanel>("PatientInfoTextPanel");
@@ -75,27 +84,36 @@ namespace MCFAdaptApp.Avalonia
             _referencePlanText = this.FindControl<TextBlock>("ReferencePlanText");
             _logoContainer = this.FindControl<Border>("LogoContainer");
             _logoImage = this.FindControl<Image>("LogoImage");
-            
+
+            // Initialize tool buttons panel
+            _toolButtonsPanel = this.FindControl<StackPanel>("ToolButtonsPanel");
+            _zoomButton = this.FindControl<Button>("ZoomButton");
+            _panButton = this.FindControl<Button>("PanButton");
+            _measureButton = this.FindControl<Button>("MeasureButton");
+            _autoRigidButton = this.FindControl<Button>("AutoRigidButton");
+            _manualRigidButton = this.FindControl<Button>("ManualRigidButton");
+            _deformButton = this.FindControl<Button>("DeformButton");
+
             // Initialize content views
             _patientView = this.FindControl<Control>("PatientView");
             _registerView = this.FindControl<Control>("RegisterView");
             _contourView = this.FindControl<Control>("ContourView");
             _planView = this.FindControl<Control>("PlanView");
             _reviewView = this.FindControl<Control>("ReviewView");
-            
+
             // Attach tab selection changed event
             if (_mainTabControl != null)
             {
                 _mainTabControl.SelectionChanged += MainTabControl_SelectionChanged;
             }
-            
+
             // Check if all controls were found
-            if (_patientInfoPanel == null || _patientInitialsText == null || _patientNameText == null || 
-                _patientDetailsText == null || _patientIdText == null || _anatomyModelText == null || 
+            if (_patientInfoPanel == null || _patientInitialsText == null || _patientNameText == null ||
+                _patientDetailsText == null || _patientIdText == null || _anatomyModelText == null ||
                 _referencePlanText == null || _logoContainer == null || _logoImage == null)
             {
                 LogHelper.LogError("MainWindow.InitializeComponent: Failed to find one or more patient info controls.");
-                
+
                 // Log which controls are missing
                 LogHelper.Log($"  PatientInfoPanel: {_patientInfoPanel != null}");
                 LogHelper.Log($"  PatientInitialsText: {_patientInitialsText != null}");
@@ -131,7 +149,10 @@ namespace MCFAdaptApp.Avalonia
             if (_contourView != null) _contourView.IsVisible = false;
             if (_planView != null) _planView.IsVisible = false;
             if (_reviewView != null) _reviewView.IsVisible = false;
-            
+
+            // Hide tool buttons by default
+            if (_toolButtonsPanel != null) _toolButtonsPanel.IsVisible = false;
+
             // Show only the selected view
             switch (selectedIndex)
             {
@@ -140,6 +161,8 @@ namespace MCFAdaptApp.Avalonia
                     break;
                 case 1: // Register
                     if (_registerView != null) _registerView.IsVisible = true;
+                    // Show tool buttons for Register view
+                    if (_toolButtonsPanel != null) _toolButtonsPanel.IsVisible = true;
                     break;
                 case 2: // Contour
                     if (_contourView != null) _contourView.IsVisible = true;
@@ -170,9 +193,12 @@ namespace MCFAdaptApp.Avalonia
                 LogHelper.LogError("MainWindow.SetupWindowControls: _headerBar is null");
             }
 
+            // Setup tool buttons
+            SetupToolButtons();
+
             if (_minimizeButton != null)
             {
-                _minimizeButton.Click += (sender, e) => 
+                _minimizeButton.Click += (sender, e) =>
                 {
                     WindowState = WindowState.Minimized;
                 };
@@ -184,10 +210,10 @@ namespace MCFAdaptApp.Avalonia
 
             if (_restoreMaximizeButton != null)
             {
-                _restoreMaximizeButton.Click += (sender, e) => 
+                _restoreMaximizeButton.Click += (sender, e) =>
                 {
-                    WindowState = WindowState == WindowState.Maximized 
-                        ? WindowState.Normal 
+                    WindowState = WindowState == WindowState.Maximized
+                        ? WindowState.Normal
                         : WindowState.Maximized;
                 };
             }
@@ -198,7 +224,7 @@ namespace MCFAdaptApp.Avalonia
 
             if (_closeButton != null)
             {
-                _closeButton.Click += (sender, e) => 
+                _closeButton.Click += (sender, e) =>
                 {
                     Close();
                 };
@@ -212,7 +238,7 @@ namespace MCFAdaptApp.Avalonia
         public void NavigateToTab(string tabName)
         {
             LogHelper.Log($"MainWindow.NavigateToTab: Called with tabName: '{tabName}'.");
-            if (_mainTabControl == null) 
+            if (_mainTabControl == null)
             {
                 LogHelper.LogWarning("MainWindow.NavigateToTab: _mainTabControl is null. Cannot navigate.");
                 return;
@@ -249,85 +275,85 @@ namespace MCFAdaptApp.Avalonia
                 LogHelper.Log($"MainWindow.NavigateToTab: SelectedIndex set to {_mainTabControl.SelectedIndex}.");
             }
         }
-        
+
         /// <summary>
         /// Updates the patient information panel with the provided data
         /// </summary>
         public void UpdatePatientInfo(Patient patient, AnatomyModel? anatomyModel = null, ReferencePlan? referencePlan = null)
         {
             LogHelper.Log($"MainWindow.UpdatePatientInfo: Updating patient info panel for {patient.DisplayName}");
-            
+
             // Check if all required controls are available
             if (_patientInfoPanel == null)
             {
                 LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientInfoPanel is null");
                 return;
             }
-            
+
             if (_patientInitialsText == null)
             {
                 LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientInitialsText is null");
                 return;
             }
-            
+
             if (_patientNameText == null)
             {
                 LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientNameText is null");
                 return;
             }
-            
+
             if (_patientDetailsText == null)
             {
                 LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientDetailsText is null");
                 return;
             }
-            
+
             if (_patientIdText == null)
             {
                 LogHelper.LogError("MainWindow.UpdatePatientInfo: _patientIdText is null");
                 return;
             }
-            
+
             if (_logoContainer == null || _logoImage == null)
             {
                 LogHelper.LogError("MainWindow.UpdatePatientInfo: _logoContainer or _logoImage is null");
                 return;
             }
-            
+
             try
             {
                 // Get patient initials
                 string firstInitial = !string.IsNullOrEmpty(patient.FirstName) ? patient.FirstName[0].ToString() : "";
                 string lastInitial = !string.IsNullOrEmpty(patient.LastName) ? patient.LastName[0].ToString() : "";
                 string initials = (firstInitial + lastInitial).ToUpper();
-                
+
                 // Update the UI elements
                 _patientInitialsText.Text = initials;
                 _patientNameText.Text = $"{patient.LastName} {patient.FirstName}";
-                
+
                 // Format date of birth if available
-                string dobText = patient.DateOfBirth.HasValue 
-                    ? patient.DateOfBirth.Value.ToString("MM/dd/yy") 
+                string dobText = patient.DateOfBirth.HasValue
+                    ? patient.DateOfBirth.Value.ToString("MM/dd/yy")
                     : "";
-                
+
                 _patientDetailsText.Text = dobText;
                 _patientIdText.Text = $"ID: {patient.PatientId}";
-                
+
                 // Only update these if they exist (they're hidden but might be used later)
                 if (_anatomyModelText != null && anatomyModel != null)
                 {
                     _anatomyModelText.Text = $"Model: {anatomyModel.Name}";
                 }
-                
+
                 if (_referencePlanText != null && referencePlan != null)
                 {
                     _referencePlanText.Text = $"Plan: {referencePlan.Name}";
                 }
-                
+
                 // Show the panel and hide the logo
                 _patientInfoPanel.IsVisible = true;
                 _logoContainer.IsVisible = false;
-                
+
                 LogHelper.Log("MainWindow.UpdatePatientInfo: Patient info panel updated successfully");
             }
             catch (Exception ex)
@@ -336,33 +362,33 @@ namespace MCFAdaptApp.Avalonia
                 LogHelper.Log(ex.StackTrace);
             }
         }
-        
+
         /// <summary>
         /// Hides the patient information panel and shows the logo
         /// </summary>
         public void HidePatientInfo()
         {
             LogHelper.Log("MainWindow.HidePatientInfo: Hiding patient info panel");
-            
+
             // Check if all required controls are available
             if (_patientInfoPanel == null)
             {
                 LogHelper.LogError("MainWindow.HidePatientInfo: _patientInfoPanel is null");
                 return;
             }
-            
+
             if (_logoContainer == null || _logoImage == null)
             {
                 LogHelper.LogError("MainWindow.HidePatientInfo: _logoContainer or _logoImage is null");
                 return;
             }
-            
+
             try
             {
                 // Hide the panel and show the logo
                 _patientInfoPanel.IsVisible = false;
                 _logoContainer.IsVisible = true;
-                
+
                 LogHelper.Log("MainWindow.HidePatientInfo: Patient info panel hidden successfully");
             }
             catch (Exception ex)
@@ -370,6 +396,53 @@ namespace MCFAdaptApp.Avalonia
                 LogHelper.LogError($"MainWindow.HidePatientInfo: Exception occurred: {ex.Message}");
                 LogHelper.Log(ex.StackTrace);
             }
+        }
+
+        /// <summary>
+        /// Sets up the tool buttons with their event handlers
+        /// </summary>
+        private void SetupToolButtons()
+        {
+            // Check if buttons are available
+            if (_zoomButton == null || _panButton == null || _measureButton == null ||
+                _autoRigidButton == null || _manualRigidButton == null || _deformButton == null)
+            {
+                LogHelper.LogWarning("MainWindow.SetupToolButtons: One or more tool buttons are null");
+                return;
+            }
+
+            // Add click event handlers for each button
+            _zoomButton.Click += (sender, e) => {
+                LogHelper.Log("Zoom button clicked");
+                // TODO: Implement zoom functionality
+            };
+
+            _panButton.Click += (sender, e) => {
+                LogHelper.Log("Pan button clicked");
+                // TODO: Implement pan functionality
+            };
+
+            _measureButton.Click += (sender, e) => {
+                LogHelper.Log("Measure button clicked");
+                // TODO: Implement measure functionality
+            };
+
+            _autoRigidButton.Click += (sender, e) => {
+                LogHelper.Log("Auto Rigid button clicked");
+                // TODO: Implement auto rigid registration functionality
+            };
+
+            _manualRigidButton.Click += (sender, e) => {
+                LogHelper.Log("Manual Rigid button clicked");
+                // TODO: Implement manual rigid registration functionality
+            };
+
+            _deformButton.Click += (sender, e) => {
+                LogHelper.Log("Deform button clicked");
+                // TODO: Implement deformable registration functionality
+            };
+
+            LogHelper.Log("MainWindow.SetupToolButtons: Tool buttons setup complete");
         }
     }
 }

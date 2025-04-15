@@ -29,7 +29,7 @@ namespace MCFAdaptApp.Infrastructure.Services
         {
             // Set the base path to the MCFAaptData directory in the project folder
             _basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "MCFAaptData", "Dcm");
-
+            
             // fo-dicom 초기화
             new DicomSetupBuilder()
                 .RegisterServices(s => s.AddFellowOakDicom())
@@ -44,15 +44,15 @@ namespace MCFAdaptApp.Infrastructure.Services
         public async Task<ReferenceCT> LoadCBCTAsync(string patientId)
         {
             LogHelper.Log($"Loading CBCT DICOM files for patient: {patientId}");
-
+            
             string cbctPath = Path.Combine(_basePath, _cbctFolder);
-
+            
             if (!Directory.Exists(cbctPath))
             {
                 LogHelper.LogWarning($"CBCT directory not found: {cbctPath}");
                 return null;
             }
-
+            
             return await LoadDicomFilesAsync(cbctPath, patientId, "CBCT");
         }
 
@@ -299,15 +299,15 @@ namespace MCFAdaptApp.Infrastructure.Services
         public async Task<RTDose> LoadRTDoseAsync(string patientId)
         {
             LogHelper.Log($"Loading RT Dose DICOM files for patient: {patientId}");
-
+            
             string planDataPath = Path.Combine(_basePath, _planDataFolder);
-
+            
             if (!Directory.Exists(planDataPath))
             {
                 LogHelper.LogWarning($"PlanData directory not found: {planDataPath}");
                 return null;
             }
-
+            
             try
             {
                 LogHelper.Log($"Searching for RT Dose files in: {planDataPath}");
@@ -395,7 +395,7 @@ namespace MCFAdaptApp.Infrastructure.Services
             try
             {
                 LogHelper.Log($"Searching for DICOM files in: {directoryPath}");
-
+                
                 // Find all DICOM files in the directory
                 var allDcmFiles = await Task.Run(() =>
                 {
@@ -405,7 +405,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                         .Union(Directory.GetFiles(directoryPath, "*.DICOM", SearchOption.AllDirectories))
                         .ToList();
                 });
-
+                
                 // Filter for CT Modality only
                 var dicomFilePaths = new List<string>();
                 foreach (var filePath in allDcmFiles)
@@ -429,7 +429,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                     LogHelper.LogWarning($"No DICOM files found in: {directoryPath}");
                     return null;
                 }
-
+                
                 LogHelper.Log($"Found {dicomFilePaths.Count} DICOM files");
 
                 // Sort files (important for correct slice order)
@@ -623,4 +623,4 @@ namespace MCFAdaptApp.Infrastructure.Services
             }
         }
     }
-}
+} 
