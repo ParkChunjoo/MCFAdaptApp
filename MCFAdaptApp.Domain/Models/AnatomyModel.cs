@@ -4,28 +4,28 @@ using System.Collections.ObjectModel;
 namespace MCFAdaptApp.Domain.Models
 {
     /// <summary>
-    /// 환자의 해부학적 모델을 나타냅니다.
+    /// Represents a patient's anatomical model
     /// </summary>
     public class AnatomyModel
     {
         /// <summary>
-        /// 해부학적 모델의 이름
+        /// Name of the anatomical model
         /// </summary>
         public string Name { get; set; } = string.Empty;
-        
+
         /// <summary>
-        /// 모델의 완료 상태
+        /// Status of the model (e.g., "Complete", "In Progress")
         /// </summary>
         public string Status { get; set; } = "Complete";
-        
+
         /// <summary>
-        /// 모델의 마지막 수정 날짜
+        /// Last modification date of the model
         /// </summary>
         public DateTime ModifiedDate { get; set; } = DateTime.Now;
-        
+
         /// <summary>
-        /// 이 모델에 연결된 참조 계획 목록
+        /// Collection of reference plans associated with this model
         /// </summary>
         public ObservableCollection<ReferencePlan> ReferencePlans { get; set; } = new ObservableCollection<ReferencePlan>();
     }
-} 
+}

@@ -4,58 +4,74 @@ using System.Collections.Generic;
 namespace MCFAdaptApp.Domain.Models
 {
     /// <summary>
-    /// 참조 CT 이미지 정보를 나타내는 클래스
+    /// Represents CT image data (either Reference CT or CBCT)
     /// </summary>
     public class ReferenceCT
     {
         /// <summary>
-        /// 참조 CT의 고유 식별자
+        /// Unique identifier for the CT dataset
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         /// <summary>
-        /// 참조 CT의 이름
+        /// Name of the CT dataset
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// 참조 CT의 경로
+        /// File system path to the CT dataset
         /// </summary>
-        public string Path { get; set; }
+        public string Path { get; set; } = string.Empty;
 
         /// <summary>
-        /// 참조 CT의 생성 날짜
+        /// Creation date of the CT dataset
         /// </summary>
         public DateTime CreatedDate { get; set; }
 
         /// <summary>
-        /// DICOM 파일 경로 목록
+        /// List of DICOM file paths that make up this dataset
         /// </summary>
         public List<string> DicomFiles { get; set; } = new List<string>();
 
         /// <summary>
-        /// 이미지 크기 (픽셀 단위)
+        /// Image width in pixels
         /// </summary>
         public int Width { get; set; }
+
+        /// <summary>
+        /// Image height in pixels
+        /// </summary>
         public int Height { get; set; }
+
+        /// <summary>
+        /// Number of slices in the volume
+        /// </summary>
         public int Depth { get; set; }
 
         /// <summary>
-        /// 픽셀 간격 (mm 단위)
+        /// Pixel spacing in X direction (mm)
         /// </summary>
         public double PixelSpacingX { get; set; }
+
+        /// <summary>
+        /// Pixel spacing in Y direction (mm)
+        /// </summary>
         public double PixelSpacingY { get; set; }
+
+        /// <summary>
+        /// Slice thickness (mm)
+        /// </summary>
         public double SliceThickness { get; set; }
 
         /// <summary>
-        /// 환자 ID
+        /// Patient ID associated with this dataset
         /// </summary>
-        public string PatientId { get; set; }
+        public string PatientId { get; set; } = string.Empty;
 
         /// <summary>
-        /// CT 유형 (CBCT 또는 ReferenceCT)
+        /// CT type ("CBCT" or "ReferenceCT")
         /// </summary>
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
 
         /// <summary>
         /// Raw pixel data for the entire volume (Width * Height * Depth)
@@ -67,4 +83,4 @@ namespace MCFAdaptApp.Domain.Models
         /// </summary>
         public int DisplaySliceIndex { get; set; }
     }
-} 
+}

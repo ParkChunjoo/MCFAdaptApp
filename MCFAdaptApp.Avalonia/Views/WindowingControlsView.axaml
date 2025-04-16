@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MCFAdaptApp.Avalonia.ViewModels"
+             x:Class="MCFAdaptApp.Avalonia.Views.WindowingControlsView"
+             x:DataType="vm:RegisterViewModel"
+             mc:Ignorable="d"
+             d:DesignHeight="40" d:DesignWidth="800">
+
+    <StackPanel Orientation="Horizontal"
+                VerticalAlignment="Center"
+                Margin="10,0">
+        
+        <!-- Reference CT Windowing Controls -->
+        <TextBlock Text="Ref CT:" Foreground="White" VerticalAlignment="Center" Margin="0,0,5,0"/>
+        
+        <TextBlock Text="W:" Foreground="White" VerticalAlignment="Center" Margin="5,0,0,0"/>
+        <NumericUpDown Value="{Binding RefCtWindowWidth}" 
+                    Minimum="1" Maximum="4000" Increment="50"
+                    Width="100" Height="30" Margin="5,0,10,0"/>
+        
+        <TextBlock Text="C:" Foreground="White" VerticalAlignment="Center"/>
+        <NumericUpDown Value="{Binding RefCtWindowCenter}" 
+                    Minimum="-1000" Maximum="3000" Increment="50"
+                    Width="100" Height="30" Margin="5,0,20,0"/>
+        
+        <!-- CBCT Windowing Controls -->
+        <TextBlock Text="CBCT:" Foreground="White" VerticalAlignment="Center" Margin="0,0,5,0"/>
+        
+        <TextBlock Text="W:" Foreground="White" VerticalAlignment="Center" Margin="5,0,0,0"/>
+        <NumericUpDown Value="{Binding CbctWindowWidth}" 
+                    Minimum="1" Maximum="4000" Increment="50"
+                    Width="100" Height="30" Margin="5,0,10,0"/>
+        
+        <TextBlock Text="C:" Foreground="White" VerticalAlignment="Center"/>
+        <NumericUpDown Value="{Binding CbctWindowCenter}" 
+                    Minimum="-1000" Maximum="3000" Increment="50"
+                    Width="100" Height="30" Margin="5,0,20,0"/>
+        
+        <!-- Grid Toggle -->
+        <CheckBox Content="Show Grid" IsChecked="{Binding ShowGrid}" 
+                Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
+    </StackPanel>
+</UserControl>

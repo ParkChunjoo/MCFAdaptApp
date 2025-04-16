@@ -24,6 +24,10 @@
     </PackageReference>
     <PackageReference Include="fo-dicom" Version="5.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
+    <!-- SkiaSharp packages for GPU-accelerated rendering -->
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9" />
+    <PackageReference Include="Avalonia.Skia" Version="11.2.5" />
   </ItemGroup>
 
   <ItemGroup>

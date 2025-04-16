@@ -37,6 +37,17 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private Bitmap? _cbctCenterSliceBitmap;
         private Bitmap? _refCtCenterSliceBitmap;
 
+        // Properties for GPU-accelerated image view
+        private double _cbctWindowWidth = 2000;
+        private double _cbctWindowCenter = 0;
+        private double _refCtWindowWidth = 2000;
+        private double _refCtWindowCenter = 0;
+        private double _cbctZoomFactor = 1.0;
+        private double _refCtZoomFactor = 1.0;
+        private Point _cbctPanOffset = new Point(0, 0);
+        private Point _refCtPanOffset = new Point(0, 0);
+        private bool _showGrid = true;
+
         /// <summary>
         /// CBCT 이미지 데이터
         /// </summary>
@@ -222,6 +233,123 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
+        /// Window width for CBCT image
+        /// </summary>
+        public double CbctWindowWidth
+        {
+            get => _cbctWindowWidth;
+            set
+            {
+                _cbctWindowWidth = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Window center for CBCT image
+        /// </summary>
+        public double CbctWindowCenter
+        {
+            get => _cbctWindowCenter;
+            set
+            {
+                _cbctWindowCenter = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Window width for Reference CT image
+        /// </summary>
+        public double RefCtWindowWidth
+        {
+            get => _refCtWindowWidth;
+            set
+            {
+                _refCtWindowWidth = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Window center for Reference CT image
+        /// </summary>
+        public double RefCtWindowCenter
+        {
+            get => _refCtWindowCenter;
+            set
+            {
+                _refCtWindowCenter = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Zoom factor for CBCT image
+        /// </summary>
+        public double CbctZoomFactor
+        {
+            get => _cbctZoomFactor;
+            set
+            {
+                _cbctZoomFactor = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Zoom factor for Reference CT image
+        /// </summary>
+        public double RefCtZoomFactor
+        {
+            get => _refCtZoomFactor;
+            set
+            {
+                _refCtZoomFactor = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Pan offset for CBCT image
+        /// </summary>
+        public Point CbctPanOffset
+        {
+            get => _cbctPanOffset;
+            set
+            {
+                _cbctPanOffset = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Pan offset for Reference CT image
+        /// </summary>
+        public Point RefCtPanOffset
+        {
+            get => _refCtPanOffset;
+            set
+            {
+                _refCtPanOffset = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Whether to show grid overlay on images
+        /// </summary>
+        public bool ShowGrid
+        {
+            get => _showGrid;
+            set
+            {
+                _showGrid = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
         /// 오류 메시지
         /// </summary>
         public string ErrorMessage
@@ -280,7 +408,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 StatusMessage = "RT Plan 로드 중...";
                 RTPlan = await _dicomService.LoadRTPlanAsync(PatientId);
                 double? isocenterZ = RTPlan?.IsocenterPosition?.Length == 3 ? RTPlan.IsocenterPosition[2] : null;
-                
+
                 // Log detailed isocenter information
                 if (RTPlan?.IsocenterPosition != null && RTPlan.IsocenterPosition.Length == 3)
                 {
@@ -290,7 +418,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 {
                     LogHelper.Log("RTPlan isocenter position not available - IsocenterPosition tag may be missing from RT Plan file");
                 }
-                
+
                 // 2. Load CBCT
                 StatusMessage = "CBCT 프로젝션 로드 중...";
                 CBCT = await _dicomService.LoadCBCTAsync(PatientId);
@@ -298,6 +426,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 {
                     StatusMessage = "CBCT 슬라이스 생성 중...";
                     CbctCenterSliceBitmap = await Task.Run(() => CreateBitmapFromSlice(CBCT));
+
+                    // Set appropriate windowing values for CBCT
+                    // CBCT typically has lower contrast than diagnostic CT
+                    CbctWindowWidth = 1500;
+                    CbctWindowCenter = 400;
+                    CbctZoomFactor = 1.0;
+                    CbctPanOffset = new Point(0, 0);
                 }
 
                 // 3. Load Reference CT (pass isocenter Z)
@@ -307,6 +442,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 {
                     StatusMessage = "참조 CT 슬라이스 생성 중...";
                     RefCtCenterSliceBitmap = await Task.Run(() => CreateBitmapFromSlice(ReferenceCT));
+
+                    // Set appropriate windowing values for Reference CT
+                    // Standard CT windowing for soft tissue
+                    RefCtWindowWidth = 400;
+                    RefCtWindowCenter = 40;
+                    RefCtZoomFactor = 1.0;
+                    RefCtPanOffset = new Point(0, 0);
                 }
 
                 // 4. Load other RT data
@@ -349,13 +491,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 int width = ctVolume.Width;
                 int height = ctVolume.Height;
                 // Use the pre-calculated display slice index
-                int displaySliceIndex = ctVolume.DisplaySliceIndex; 
+                int displaySliceIndex = ctVolume.DisplaySliceIndex;
                 if (displaySliceIndex < 0 || displaySliceIndex >= ctVolume.Depth)
                 {
                     LogHelper.LogWarning($"Invalid DisplaySliceIndex ({displaySliceIndex}) for volume depth {ctVolume.Depth}. Defaulting to center.");
                     displaySliceIndex = ctVolume.Depth / 2; // Fallback to center if index is invalid
                 }
-                
+
                 int sliceSize = width * height;
                 int startOffset = displaySliceIndex * sliceSize;
 
