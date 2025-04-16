@@ -30,7 +30,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private bool _isLoading;
         private bool _hasError;
         private string _errorMessage = string.Empty;
-        private readonly ConcurrentDictionary<string, ObservableCollection<AnatomyModel>> _anatomyModelCache = new();
+        private readonly ConcurrentDictionary<string, ObservableCollection<RTStructure>> _structureCache = new();
         private bool _showLoadingOverlay;
         private string _loadingStatusText = "Loading...";
 
@@ -65,11 +65,11 @@ namespace MCFAdaptApp.Avalonia.ViewModels
 
                 _selectedPatient = value;
 
-                // Immediately set AnatomyModels from cache if patient is not null
-                if (value != null && _anatomyModelCache.TryGetValue(value.PatientId, out var cachedModels))
+                // Immediately set Structures from cache if patient is not null
+                if (value != null && _structureCache.TryGetValue(value.PatientId, out var cachedStructures))
                 {
-                    LogHelper.Log($"Setting AnatomyModels from cache immediately: {cachedModels.Count} models");
-                    value.AnatomyModels = cachedModels;
+                    LogHelper.Log($"Setting Structures from cache immediately: {cachedStructures.Count} structures");
+                    value.Structures = cachedStructures;
                 }
 
                 // Notify UI of change
@@ -217,7 +217,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             ShowRecentPatientsCommand = new RelayCommand(_ => ShowRecentPatients());
             ShowAllPatientsCommand = new RelayCommand(_ => ShowAllPatients());
             SelectAsReferencePlanCommand = new AsyncRelayCommand(SelectAsReferencePlanAsync, CanSelectAsReferencePlan);
-            SelectReferencePlanCommand = new AsyncRelayCommand<ReferencePlan>(SelectReferencePlanAsync);
+            SelectReferencePlanCommand = new AsyncRelayCommand<RTPlan>(SelectReferencePlanAsync);
 
             // Initialize properties
             ErrorMessage = string.Empty;
@@ -233,21 +233,21 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             // Load patient list first
             await LoadPatientsAsync();
 
-            // After loading patients, preload anatomy models immediately
-            await PreloadAllAnatomyModelsAsync();
+            // After loading patients, preload structures immediately
+            await PreloadAllStructuresAsync();
 
             LogHelper.Log("Initialization complete with preloaded models");
         }
 
         /// <summary>
-        /// Preloads anatomy models for all patients to improve UI responsiveness 
+        /// Preloads RT structures for all patients to improve UI responsiveness
         /// when selecting patients
         /// </summary>
-        private async Task PreloadAllAnatomyModelsAsync()
+        private async Task PreloadAllStructuresAsync()
         {
             try
             {
-                LogHelper.Log("Starting preload of anatomy models for all patients");
+                LogHelper.Log("Starting preload of RT structures for all patients");
 
                 // Create tasks for all patients
                 var tasks = new List<Task>();
@@ -255,53 +255,50 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 foreach (var patient in Patients)
                 {
                     // If already in cache, skip
-                    if (_anatomyModelCache.ContainsKey(patient.PatientId))
+                    if (_structureCache.ContainsKey(patient.PatientId))
                         continue;
 
-                    // Create a task for each patient to load models
+                    // Create a task for each patient to load structures
                     tasks.Add(Task.Run(async () =>
                     {
                         try
                         {
-                            // Get models from service
-                            var models = await _patientService.GetAnatomyModelsAsync(patient.PatientId);
+                            // Get structures from service
+                            var structures = await _patientService.GetStructuresAsync(patient.PatientId);
 
-                            if (models != null && models.Count > 0)
+                            if (structures != null && structures.Count > 0)
                             {
                                 // Add to cache
-                                var anatomyModels = new ObservableCollection<AnatomyModel>(models);
-                                _anatomyModelCache.TryAdd(patient.PatientId, anatomyModels);
-                                LogHelper.Log($"Preloaded {anatomyModels.Count} anatomy models for patient: {patient.PatientId}");
+                                var rtStructures = new ObservableCollection<RTStructure>(structures);
+                                _structureCache.TryAdd(patient.PatientId, rtStructures);
+                                LogHelper.Log($"Preloaded {rtStructures.Count} RT structures for patient: {patient.PatientId}");
                             }
                             else
                             {
-                                // Create sample models if none found
-                                var sampleModels = CreateSampleModels(patient.PatientId);
-                                _anatomyModelCache.TryAdd(patient.PatientId, new ObservableCollection<AnatomyModel>(sampleModels));
-                                LogHelper.Log($"Preloaded sample anatomy models for patient: {patient.PatientId}");
+                                // Create sample structures if none found
+                                var sampleStructures = CreateSampleStructures(patient.PatientId);
+                                _structureCache.TryAdd(patient.PatientId, new ObservableCollection<RTStructure>(sampleStructures));
+                                LogHelper.Log($"Preloaded sample RT structures for patient: {patient.PatientId}");
                             }
                         }
                         catch (Exception ex)
                         {
-                            LogHelper.LogError($"Error preloading for patient {patient.PatientId}: {ex.Message}");
+                            LogHelper.LogError($"Error preloading structures for patient {patient.PatientId}: {ex.Message}");
                         }
                     }));
                 }
 
-                // Wait for a maximum of 3 seconds for preloading to complete
+                // Wait for all tasks to complete without timeout
                 if (tasks.Count > 0)
                 {
-                    await Task.WhenAny(
-                        Task.WhenAll(tasks),
-                        Task.Delay(3000)
-                    );
+                    await Task.WhenAll(tasks);
                 }
 
-                LogHelper.Log("Completed preloading anatomy models for all patients");
+                LogHelper.Log("Completed preloading RT structures for all patients");
             }
             catch (Exception ex)
             {
-                LogHelper.LogError($"Error in PreloadAllAnatomyModelsAsync: {ex.Message}");
+                LogHelper.LogError($"Error in PreloadAllStructuresAsync: {ex.Message}");
             }
         }
 
@@ -435,17 +432,17 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
-        /// Loads anatomy models for a specific patient ID
+        /// Loads RT structures for a specific patient ID
         /// </summary>
-        public async Task LoadAnatomyModelsAsync(string patientId)
+        public async Task LoadStructuresAsync(string patientId)
         {
             if (string.IsNullOrEmpty(patientId))
             {
-                LogHelper.Log("LoadAnatomyModelsAsync: Invalid patient ID");
+                LogHelper.Log("LoadStructuresAsync: Invalid patient ID");
                 return;
             }
 
-            LogHelper.Log($"LoadAnatomyModelsAsync called for patient: {patientId}");
+            LogHelper.Log($"LoadStructuresAsync called for patient: {patientId}");
 
             try
             {
@@ -456,8 +453,8 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 var patient = Patients.FirstOrDefault(p => p.PatientId == patientId);
                 if (patient != null)
                 {
-                    // Load the patient's anatomy models
-                    await LoadPatientPlansAsync(patient);
+                    // Load the patient's structures
+                    await LoadPatientStructuresAsync(patient);
                 }
                 else
                 {
@@ -466,8 +463,8 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             }
             catch (Exception ex)
             {
-                LogHelper.LogError($"Error loading anatomy models: {ex.Message}");
-                ErrorMessage = $"Error loading anatomy models: {ex.Message}";
+                LogHelper.LogError($"Error loading RT structures: {ex.Message}");
+                ErrorMessage = $"Error loading RT structures: {ex.Message}";
             }
             finally
             {
@@ -476,91 +473,91 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
-        /// 선택된 환자의 PlanInfo.txt 파일을 로드하여 AnatomyModel과 ReferencePlan을 설정합니다.
+        /// Loads RT structures and plans for the selected patient
         /// </summary>
-        private async Task LoadPatientPlansAsync(Patient patient)
+        private async Task LoadPatientStructuresAsync(Patient patient)
         {
             if (patient == null)
             {
-                LogHelper.Log("LoadPatientPlansAsync: Patient is null");
+                LogHelper.Log("LoadPatientStructuresAsync: Patient is null");
                 return;
             }
 
-            LogHelper.Log($"Starting to load plans for patient: {patient.PatientId}");
+            LogHelper.Log($"Starting to load structures and plans for patient: {patient.PatientId}");
 
             try
             {
                 // First, check cache - for immediate response
-                if (_anatomyModelCache.TryGetValue(patient.PatientId, out var cachedModels) &&
-                    cachedModels != null && cachedModels.Count > 0)
+                if (_structureCache.TryGetValue(patient.PatientId, out var cachedStructures) &&
+                    cachedStructures != null && cachedStructures.Count > 0)
                 {
-                    LogHelper.Log($"Using cached anatomy models for patient: {patient.PatientId}, Count: {cachedModels.Count}");
+                    LogHelper.Log($"Using cached RT structures for patient: {patient.PatientId}, Count: {cachedStructures.Count}");
 
-                    // Set models immediately without async delay for best responsiveness
-                    patient.AnatomyModels = cachedModels;
+                    // Set structures immediately without async delay for best responsiveness
+                    patient.Structures = cachedStructures;
 
                     // Force UI update on the UI thread - do this immediately, using a direct property path
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        // Update the patient instance's AnatomyModels directly
-                        LogHelper.Log("Updated UI with cached models");
+                        // Update the patient instance's Structures directly
+                        LogHelper.Log("Updated UI with cached structures");
                         OnPropertyChanged(nameof(SelectedPatient));
 
-                        // Also explicitly notify about AnatomyModels property
-                        OnPropertyChanged("SelectedPatient.AnatomyModels");
+                        // Also explicitly notify about Structures property
+                        OnPropertyChanged("SelectedPatient.Structures");
                     }, DispatcherPriority.Render);
 
                     return;
                 }
 
                 // Not in cache, need to load from service
-                LogHelper.Log("No cached models found, loading from service");
+                LogHelper.Log("No cached structures found, loading from service");
 
                 // For better UX, show loading indicator and immediately create a placeholder
                 // to show something right away
-                var placeholderModels = CreateSampleModels(patient.PatientId);
-                patient.AnatomyModels = new ObservableCollection<AnatomyModel>(placeholderModels);
+                var placeholderStructures = CreateSampleStructures(patient.PatientId);
+                patient.Structures = new ObservableCollection<RTStructure>(placeholderStructures);
 
                 // Force UI update with placeholder data immediately
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    LogHelper.Log("Updated UI with placeholder models");
+                    LogHelper.Log("Updated UI with placeholder structures");
                     OnPropertyChanged(nameof(SelectedPatient));
-                    OnPropertyChanged("SelectedPatient.AnatomyModels");
+                    OnPropertyChanged("SelectedPatient.Structures");
                 }, DispatcherPriority.Render);
 
                 // Now load the real data in background
-                var models = await _patientService.GetAnatomyModelsAsync(patient.PatientId);
+                var structures = await _patientService.GetStructuresAsync(patient.PatientId);
 
-                if (models == null || models.Count == 0)
+                if (structures == null || structures.Count == 0)
                 {
                     // Already showing placeholder data, so just add to cache
-                    _anatomyModelCache.TryAdd(patient.PatientId, new ObservableCollection<AnatomyModel>(placeholderModels));
-                    LogHelper.Log("Using placeholder models as no models found from service");
+                    _structureCache.TryAdd(patient.PatientId, new ObservableCollection<RTStructure>(placeholderStructures));
+                    LogHelper.Log("Using placeholder structures as no structures found from service");
                     return;
                 }
 
                 // Got real data, update UI and cache
-                var anatomyModels = new ObservableCollection<AnatomyModel>(models);
+                var rtStructures = new ObservableCollection<RTStructure>(structures);
 
                 // Add to cache
-                _anatomyModelCache.TryAdd(patient.PatientId, anatomyModels);
+                _structureCache.TryAdd(patient.PatientId, rtStructures);
 
                 // Only update if this is still the selected patient
                 if (_selectedPatient?.PatientId == patient.PatientId)
                 {
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        patient.AnatomyModels = anatomyModels;
-                        LogHelper.Log("Updated UI with real models from service");
+                        patient.Structures = rtStructures;
+                        LogHelper.Log("Updated UI with real structures from service");
 
                         // Notify about both properties
                         OnPropertyChanged(nameof(SelectedPatient));
-                        OnPropertyChanged("SelectedPatient.AnatomyModels");
+                        OnPropertyChanged("SelectedPatient.Structures");
                     }, DispatcherPriority.Render);
                 }
 
-                LogHelper.Log($"Loaded {anatomyModels.Count} anatomy models for patient: {patient.PatientId}");
+                LogHelper.Log($"Loaded {rtStructures.Count} RT structures for patient: {patient.PatientId}");
             }
             catch (Exception ex)
             {
@@ -569,34 +566,45 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             }
         }
 
-        // Helper method to create sample models for testing
-        private List<AnatomyModel> CreateSampleModels(string patientId)
+        // Helper method to create sample structures for testing
+        private List<RTStructure> CreateSampleStructures(string patientId)
         {
-            LogHelper.Log($"Creating sample anatomy models for patient: {patientId}");
+            LogHelper.Log($"Creating sample RT structures for patient: {patientId}");
 
-            var models = new List<AnatomyModel>();
+            var structures = new List<RTStructure>();
 
-            // Create a sample anatomy model
-            var model = new AnatomyModel
+            // Create a sample RT structure
+            var structure = new RTStructure
             {
-                Name = "Default Anatomy Model",
+                Id = Guid.NewGuid().ToString(),
+                Name = "Default Structure Set",
                 Status = "Available",
+                Type = "Original",
                 ModifiedDate = DateTime.Now,
-                ReferencePlans = new ObservableCollection<ReferencePlan>()
+                CreatedDate = DateTime.Now.AddDays(-7),
+                PatientId = patientId,
+                Plans = new ObservableCollection<RTPlan>(),
+                StructureNames = new List<string> { "PTV", "CTV", "Bladder", "Rectum" }
             };
 
-            // Add some sample reference plans
-            model.ReferencePlans.Add(new ReferencePlan
+            // Add a sample plan
+            var plan = new RTPlan
             {
-                Name = "Default Reference Plan",
-                Description = "Sample reference plan for testing purposes",
+                Id = Guid.NewGuid().ToString(),
+                Name = "Default Treatment Plan",
+                Description = "Sample treatment plan for testing purposes",
                 Status = "Available",
-                ModifiedDate = DateTime.Now
-            });
+                Type = "Reference",
+                ModifiedDate = DateTime.Now,
+                CreatedDate = DateTime.Now.AddDays(-5),
+                PatientId = patientId,
+                RTStructureId = structure.Id
+            };
 
-            models.Add(model);
+            structure.Plans.Add(plan);
+            structures.Add(structure);
 
-            return models;
+            return structures;
         }
 
         /// <summary>
@@ -659,41 +667,41 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
-        /// Processes a reference plan selection and navigates to the Register tab
+        /// Processes a treatment plan selection and navigates to the Register tab
         /// </summary>
-        /// <param name="referencePlan">The selected reference plan</param>
-        private async Task SelectReferencePlanAsync(ReferencePlan? referencePlan)
+        /// <param name="plan">The selected treatment plan</param>
+        private async Task SelectReferencePlanAsync(RTPlan? plan)
         {
-            if (referencePlan == null)
+            if (plan == null)
             {
-                LogHelper.Log("SelectReferencePlanAsync: ReferencePlan is null");
-                ErrorMessage = "No reference plan selected.";
+                LogHelper.Log("SelectReferencePlanAsync: RTPlan is null");
+                ErrorMessage = "No treatment plan selected.";
                 return;
             }
 
             try
             {
                 // Update UI to show loading
-                LogHelper.Log($"Reference plan selected: {referencePlan.Name}");
+                LogHelper.Log($"Treatment plan selected: {plan.Name}");
                 ShowLoadingOverlay = true;
                 ClearError();
 
                 // First phase - Loading CBCT projections
                 LoadingStatusText = "Loading CBCT Projections...";
                 LogHelper.Log("Loading CBCT Projections...");
-                await Task.Delay(2000); // Simulate work for 2 seconds
+                // No delay - immediate processing
 
-                // Second phase - Loading reference plan data
-                LoadingStatusText = "Loading Reference Plan Data...";
-                LogHelper.Log("Loading Reference Plan Data...");
-                await Task.Delay(2000); // Simulate work for 2 seconds
+                // Second phase - Loading treatment plan data
+                LoadingStatusText = "Loading Treatment Plan Data...";
+                LogHelper.Log("Loading Treatment Plan Data...");
+                // No delay - immediate processing
 
                 // Hide loading overlay
                 ShowLoadingOverlay = false;
 
-                // Store selected reference plan if needed
+                // Store selected treatment plan if needed
                 // This could be used in the Register tab
-                LogHelper.Log($"Loading complete, storing reference plan: {referencePlan.Name}");
+                LogHelper.Log($"Loading complete, storing treatment plan: {plan.Name}");
 
                 // Finally, navigate to the Register tab (ensure patient is selected)
                 if (SelectedPatient != null)

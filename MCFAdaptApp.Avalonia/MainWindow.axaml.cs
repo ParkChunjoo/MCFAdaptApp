@@ -279,7 +279,7 @@ namespace MCFAdaptApp.Avalonia
         /// <summary>
         /// Updates the patient information panel with the provided data
         /// </summary>
-        public void UpdatePatientInfo(Patient patient, AnatomyModel? anatomyModel = null, ReferencePlan? referencePlan = null)
+        public void UpdatePatientInfo(Patient patient, RTStructure? structure = null, RTPlan? plan = null)
         {
             LogHelper.Log($"MainWindow.UpdatePatientInfo: Updating patient info panel for {patient.DisplayName}");
 
@@ -340,14 +340,14 @@ namespace MCFAdaptApp.Avalonia
                 _patientIdText.Text = $"ID: {patient.PatientId}";
 
                 // Only update these if they exist (they're hidden but might be used later)
-                if (_anatomyModelText != null && anatomyModel != null)
+                if (_anatomyModelText != null && structure != null)
                 {
-                    _anatomyModelText.Text = $"Model: {anatomyModel.Name}";
+                    _anatomyModelText.Text = $"Structure: {structure.Name}";
                 }
 
-                if (_referencePlanText != null && referencePlan != null)
+                if (_referencePlanText != null && plan != null)
                 {
-                    _referencePlanText.Text = $"Plan: {referencePlan.Name}";
+                    _referencePlanText.Text = $"Plan: {plan.Name}";
                 }
 
                 // Show the panel and hide the logo

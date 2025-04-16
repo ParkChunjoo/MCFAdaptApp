@@ -29,7 +29,7 @@ namespace MCFAdaptApp.Infrastructure.Services
         {
             // Set the base path to the MCFAaptData directory in the project folder
             _basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "MCFAaptData", "Dcm");
-            
+
             // fo-dicom 초기화
             new DicomSetupBuilder()
                 .RegisterServices(s => s.AddFellowOakDicom())
@@ -37,32 +37,32 @@ namespace MCFAdaptApp.Infrastructure.Services
         }
 
         /// <summary>
-        /// 지정된 경로에서 CBCT DICOM 파일을 로드합니다.
+        /// Loads CBCT DICOM files from the specified path
         /// </summary>
-        /// <param name="patientId">환자 ID</param>
-        /// <returns>로드된 CBCT 객체</returns>
-        public async Task<ReferenceCT> LoadCBCTAsync(string patientId)
+        /// <param name="patientId">Patient ID</param>
+        /// <returns>Loaded CBCT object</returns>
+        public async Task<RTCT> LoadCBCTAsync(string patientId)
         {
             LogHelper.Log($"Loading CBCT DICOM files for patient: {patientId}");
-            
+
             string cbctPath = Path.Combine(_basePath, _cbctFolder);
-            
+
             if (!Directory.Exists(cbctPath))
             {
                 LogHelper.LogWarning($"CBCT directory not found: {cbctPath}");
                 return null;
             }
-            
+
             return await LoadDicomFilesAsync(cbctPath, patientId, "CBCT");
         }
 
         /// <summary>
-        /// 지정된 경로에서 참조 CT DICOM 파일을 로드합니다.
+        /// Loads reference CT DICOM files from the specified path
         /// </summary>
-        /// <param name="patientId">환자 ID</param>
+        /// <param name="patientId">Patient ID</param>
         /// <param name="isocenterZ">Optional isocenter Z coordinate</param>
-        /// <returns>로드된 참조 CT 객체</returns>
-        public async Task<ReferenceCT> LoadReferenceCTAsync(string patientId, double? isocenterZ = null)
+        /// <returns>Loaded reference CT object</returns>
+        public async Task<RTCT> LoadReferenceCTAsync(string patientId, double? isocenterZ = null)
         {
             LogHelper.Log($"Loading Reference CT DICOM files for patient: {patientId}" + (isocenterZ.HasValue ? $" near Z={isocenterZ.Value}" : ""));
 
@@ -224,7 +224,7 @@ namespace MCFAdaptApp.Infrastructure.Services
 
                     if (dataset.Contains(DicomTag.RTPlanDescription))
                     {
-                        rtPlan.PlanDescription = dataset.GetString(DicomTag.RTPlanDescription);
+                        rtPlan.Description = dataset.GetString(DicomTag.RTPlanDescription);
                     }
 
                     // First try to get isocenter position directly (though this is uncommon)
@@ -299,15 +299,15 @@ namespace MCFAdaptApp.Infrastructure.Services
         public async Task<RTDose> LoadRTDoseAsync(string patientId)
         {
             LogHelper.Log($"Loading RT Dose DICOM files for patient: {patientId}");
-            
+
             string planDataPath = Path.Combine(_basePath, _planDataFolder);
-            
+
             if (!Directory.Exists(planDataPath))
             {
                 LogHelper.LogWarning($"PlanData directory not found: {planDataPath}");
                 return null;
             }
-            
+
             try
             {
                 LogHelper.Log($"Searching for RT Dose files in: {planDataPath}");
@@ -383,19 +383,19 @@ namespace MCFAdaptApp.Infrastructure.Services
         }
 
         /// <summary>
-        /// 지정된 경로의 DICOM 파일들을 로드합니다.
+        /// Loads DICOM files from the specified path
         /// </summary>
-        /// <param name="directoryPath">DICOM 파일이 있는 디렉토리 경로</param>
-        /// <param name="patientId">환자 ID</param>
-        /// <param name="type">CT 유형 (CBCT 또는 ReferenceCT)</param>
+        /// <param name="directoryPath">Directory path containing DICOM files</param>
+        /// <param name="patientId">Patient ID</param>
+        /// <param name="type">CT type (CBCT or ReferenceCT)</param>
         /// <param name="isocenterZ">Optional Z-coordinate of the isocenter (used for ReferenceCT)</param>
-        /// <returns>로드된 ReferenceCT 객체</returns>
-        public async Task<ReferenceCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type, double? isocenterZ = null)
+        /// <returns>Loaded RTCT object</returns>
+        public async Task<RTCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type, double? isocenterZ = null)
         {
             try
             {
                 LogHelper.Log($"Searching for DICOM files in: {directoryPath}");
-                
+
                 // Find all DICOM files in the directory
                 var allDcmFiles = await Task.Run(() =>
                 {
@@ -405,7 +405,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                         .Union(Directory.GetFiles(directoryPath, "*.DICOM", SearchOption.AllDirectories))
                         .ToList();
                 });
-                
+
                 // Filter for CT Modality only
                 var dicomFilePaths = new List<string>();
                 foreach (var filePath in allDcmFiles)
@@ -429,7 +429,7 @@ namespace MCFAdaptApp.Infrastructure.Services
                     LogHelper.LogWarning($"No DICOM files found in: {directoryPath}");
                     return null;
                 }
-                
+
                 LogHelper.Log($"Found {dicomFilePaths.Count} DICOM files");
 
                 // Sort files (important for correct slice order)
@@ -534,16 +534,19 @@ namespace MCFAdaptApp.Infrastructure.Services
                 }
                 // --- End Determine Slice Index ---
 
-                // Create the ReferenceCT object
-                var referenceCT = new ReferenceCT
+                // Create the RTCT object
+                var rtct = new RTCT
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = type == "CBCT" ? $"CBCT_{patientId}" : $"ReferenceCT_{patientId}",
                     Path = directoryPath,
                     CreatedDate = DateTime.Now,
+                    AcquisitionDate = DateTime.Now.AddDays(-1),
                     DicomFiles = dicomFilePaths,
                     PatientId = patientId,
                     Type = type,
+                    Modality = type == "CBCT" ? "CBCT" : "CT",
+                    SeriesDescription = type == "CBCT" ? "Cone Beam CT" : "Planning CT",
                     Width = width,
                     Height = height,
                     Depth = depth,
@@ -610,10 +613,10 @@ namespace MCFAdaptApp.Infrastructure.Services
                     });
                 });
 
-                referenceCT.PixelData = allPixelData;
+                rtct.PixelData = allPixelData;
                 LogHelper.Log($"Successfully loaded pixel data for {type} ({width}x{height}x{depth}) for patient: {patientId}");
 
-                return referenceCT;
+                return rtct;
             }
             catch (Exception ex)
             {
@@ -623,4 +626,4 @@ namespace MCFAdaptApp.Infrastructure.Services
             }
         }
     }
-} 
+}

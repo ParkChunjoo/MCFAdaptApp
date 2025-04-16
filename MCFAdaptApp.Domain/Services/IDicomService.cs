@@ -10,19 +10,19 @@ namespace MCFAdaptApp.Domain.Services
     public interface IDicomService
     {
         /// <summary>
-        /// 지정된 경로에서 CBCT DICOM 파일을 로드합니다.
+        /// Loads CBCT DICOM files from the specified path
         /// </summary>
-        /// <param name="patientId">환자 ID</param>
-        /// <returns>로드된 CBCT 객체</returns>
-        Task<ReferenceCT> LoadCBCTAsync(string patientId);
+        /// <param name="patientId">Patient ID</param>
+        /// <returns>Loaded CBCT object</returns>
+        Task<RTCT> LoadCBCTAsync(string patientId);
 
         /// <summary>
-        /// 지정된 경로에서 참조 CT DICOM 파일을 로드합니다.
+        /// Loads reference CT DICOM files from the specified path
         /// </summary>
-        /// <param name="patientId">환자 ID</param>
+        /// <param name="patientId">Patient ID</param>
         /// <param name="isocenterZ">Optional isocenter Z coordinate</param>
-        /// <returns>로드된 참조 CT 객체</returns>
-        Task<ReferenceCT> LoadReferenceCTAsync(string patientId, double? isocenterZ = null);
+        /// <returns>Loaded reference CT object</returns>
+        Task<RTCT> LoadReferenceCTAsync(string patientId, double? isocenterZ = null);
 
         /// <summary>
         /// </summary>
@@ -40,13 +40,13 @@ namespace MCFAdaptApp.Domain.Services
         Task<RTDose> LoadRTDoseAsync(string patientId);
 
         /// <summary>
-        /// 지정된 경로의 DICOM 파일들을 로드합니다.
+        /// Loads DICOM files from the specified path
         /// </summary>
-        /// <param name="directoryPath">DICOM 파일이 있는 디렉토리 경로</param>
-        /// <param name="patientId">환자 ID</param>
-        /// <param name="type">CT 유형 (CBCT 또는 ReferenceCT)</param>
+        /// <param name="directoryPath">Directory path containing DICOM files</param>
+        /// <param name="patientId">Patient ID</param>
+        /// <param name="type">CT type (CBCT or ReferenceCT)</param>
         /// <param name="isocenterZ">Optional isocenter Z coordinate</param>
-        /// <returns>로드된 ReferenceCT 객체</returns>
-        Task<ReferenceCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type, double? isocenterZ = null);
+        /// <returns>Loaded RTCT object</returns>
+        Task<RTCT> LoadDicomFilesAsync(string directoryPath, string patientId, string type, double? isocenterZ = null);
     }
 }

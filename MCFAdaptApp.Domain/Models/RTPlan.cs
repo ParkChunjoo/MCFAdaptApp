@@ -28,6 +28,11 @@ namespace MCFAdaptApp.Domain.Models
         public DateTime CreatedDate { get; set; }
 
         /// <summary>
+        /// Last modification date of the plan
+        /// </summary>
+        public DateTime ModifiedDate { get; set; } = DateTime.Now;
+
+        /// <summary>
         /// Path to the DICOM file containing the plan
         /// </summary>
         public string DicomFile { get; set; } = string.Empty;
@@ -45,7 +50,17 @@ namespace MCFAdaptApp.Domain.Models
         /// <summary>
         /// Description of the treatment plan
         /// </summary>
-        public string PlanDescription { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Status of the plan (e.g., "Complete", "In Progress")
+        /// </summary>
+        public string Status { get; set; } = "Complete";
+
+        /// <summary>
+        /// Type of the plan (e.g., "Reference", "Adapted")
+        /// </summary>
+        public string Type { get; set; } = "Reference";
 
         /// <summary>
         /// Isocenter position [X, Y, Z] in mm
@@ -55,7 +70,7 @@ namespace MCFAdaptApp.Domain.Models
         /// <summary>
         /// ID of the reference CT dataset this plan is associated with
         /// </summary>
-        public string ReferenceCTId { get; set; } = string.Empty;
+        public string RTCTId { get; set; } = string.Empty;
 
         /// <summary>
         /// ID of the RT structure set this plan is associated with

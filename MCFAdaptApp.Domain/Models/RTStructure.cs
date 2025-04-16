@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace MCFAdaptApp.Domain.Models
 {
@@ -29,6 +30,11 @@ namespace MCFAdaptApp.Domain.Models
         public DateTime CreatedDate { get; set; }
 
         /// <summary>
+        /// Last modification date of the structure set
+        /// </summary>
+        public DateTime ModifiedDate { get; set; } = DateTime.Now;
+
+        /// <summary>
         /// Path to the DICOM file containing the structure set
         /// </summary>
         public string DicomFile { get; set; } = string.Empty;
@@ -39,6 +45,16 @@ namespace MCFAdaptApp.Domain.Models
         public string PatientId { get; set; } = string.Empty;
 
         /// <summary>
+        /// Status of the structure set (e.g., "Complete", "In Progress")
+        /// </summary>
+        public string Status { get; set; } = "Complete";
+
+        /// <summary>
+        /// Type of the structure set (e.g., "Original", "Edited")
+        /// </summary>
+        public string Type { get; set; } = "Original";
+
+        /// <summary>
         /// List of structure names contained in this structure set
         /// </summary>
         public List<string> StructureNames { get; set; } = new List<string>();
@@ -46,6 +62,11 @@ namespace MCFAdaptApp.Domain.Models
         /// <summary>
         /// ID of the reference CT dataset this structure set is associated with
         /// </summary>
-        public string ReferenceCTId { get; set; } = string.Empty;
+        public string RTCTId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Collection of treatment plans associated with this structure set
+        /// </summary>
+        public ObservableCollection<RTPlan> Plans { get; set; } = new ObservableCollection<RTPlan>();
     }
 }

@@ -6,7 +6,7 @@ namespace MCFAdaptApp.Domain.Models
     /// <summary>
     /// Represents CT image data (either Reference CT or CBCT)
     /// </summary>
-    public class ReferenceCT
+    public class RTCT
     {
         /// <summary>
         /// Unique identifier for the CT dataset
@@ -29,22 +29,32 @@ namespace MCFAdaptApp.Domain.Models
         public DateTime CreatedDate { get; set; }
 
         /// <summary>
+        /// Acquisition date of the CT dataset
+        /// </summary>
+        public DateTime AcquisitionDate { get; set; }
+
+        /// <summary>
         /// List of DICOM file paths that make up this dataset
         /// </summary>
         public List<string> DicomFiles { get; set; } = new List<string>();
 
         /// <summary>
-        /// Image width in pixels
+        /// Patient ID associated with this CT dataset
+        /// </summary>
+        public string PatientId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Width of the CT volume in pixels
         /// </summary>
         public int Width { get; set; }
 
         /// <summary>
-        /// Image height in pixels
+        /// Height of the CT volume in pixels
         /// </summary>
         public int Height { get; set; }
 
         /// <summary>
-        /// Number of slices in the volume
+        /// Depth of the CT volume (number of slices)
         /// </summary>
         public int Depth { get; set; }
 
@@ -64,14 +74,19 @@ namespace MCFAdaptApp.Domain.Models
         public double SliceThickness { get; set; }
 
         /// <summary>
-        /// Patient ID associated with this dataset
-        /// </summary>
-        public string PatientId { get; set; } = string.Empty;
-
-        /// <summary>
         /// CT type ("CBCT" or "ReferenceCT")
         /// </summary>
         public string Type { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Modality of the image (e.g., "CT", "CBCT")
+        /// </summary>
+        public string Modality { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Series description from DICOM metadata
+        /// </summary>
+        public string SeriesDescription { get; set; } = string.Empty;
 
         /// <summary>
         /// Raw pixel data for the entire volume (Width * Height * Depth)

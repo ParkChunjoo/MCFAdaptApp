@@ -20,8 +20,18 @@ namespace MCFAdaptApp.Domain.Services
         Task<Patient?> GetPatientByIdAsync(string patientId);
 
         /// <summary>
-        /// 환자 ID로 해당 환자의 AnatomyModel 목록을 가져옵니다.
+        /// Gets RT structure sets for a patient by patient ID
         /// </summary>
-        Task<List<AnatomyModel>> GetAnatomyModelsAsync(string patientId);
+        Task<List<RTStructure>> GetStructuresAsync(string patientId);
+
+        /// <summary>
+        /// Gets CT datasets for a patient by patient ID
+        /// </summary>
+        Task<List<RTCT>> GetCTDatasetsAsync(string patientId);
+
+        /// <summary>
+        /// Gets treatment plans for a patient by patient ID
+        /// </summary>
+        Task<List<RTPlan>> GetPlansAsync(string patientId);
     }
-} 
+}

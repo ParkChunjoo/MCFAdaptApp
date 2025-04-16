@@ -21,15 +21,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
     public class RegisterViewModel : INotifyPropertyChanged
     {
         private readonly IDicomService _dicomService;
-        private ReferenceCT? _cbct;
-        private ReferenceCT? _referenceCT;
+        private RTCT? _cbct;
+        private RTCT? _referenceCT;
         private RTStructure? _rtStructure;
         private RTPlan? _rtPlan;
         private RTDose? _rtDose;
         private string _patientId = string.Empty;
         private Patient? _patient;
-        private AnatomyModel? _selectedAnatomyModel;
-        private ReferencePlan? _selectedReferencePlan;
         private bool _isLoading;
         private string? _statusMessage;
         private bool _hasError;
@@ -49,9 +47,9 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private bool _showGrid = true;
 
         /// <summary>
-        /// CBCT 이미지 데이터
+        /// CBCT image data
         /// </summary>
-        public ReferenceCT CBCT
+        public RTCT CBCT
         {
             get => _cbct;
             set
@@ -62,9 +60,9 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
-        /// 참조 CT 이미지 데이터
+        /// Reference CT image data
         /// </summary>
-        public ReferenceCT ReferenceCT
+        public RTCT ReferenceCT
         {
             get => _referenceCT;
             set
@@ -75,6 +73,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
+        /// Currently selected RT structure
         /// </summary>
         public RTStructure RTStructure
         {
@@ -87,6 +86,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
+        /// Currently selected RT plan
         /// </summary>
         public RTPlan RTPlan
         {
@@ -99,6 +99,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
+        /// Currently selected RT dose
         /// </summary>
         public RTDose RTDose
         {
@@ -140,31 +141,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             }
         }
 
-        /// <summary>
-        /// 선택된 해부학적 모델
-        /// </summary>
-        public AnatomyModel? SelectedAnatomyModel
-        {
-            get => _selectedAnatomyModel;
-            set
-            {
-                _selectedAnatomyModel = value;
-                OnPropertyChanged();
-            }
-        }
 
-        /// <summary>
-        /// 선택된 참조 계획
-        /// </summary>
-        public ReferencePlan? SelectedReferencePlan
-        {
-            get => _selectedReferencePlan;
-            set
-            {
-                _selectedReferencePlan = value;
-                OnPropertyChanged();
-            }
-        }
 
         /// <summary>
         /// 로딩 중 여부
@@ -479,7 +456,7 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             }
         }
 
-        private Bitmap? CreateBitmapFromSlice(ReferenceCT ctVolume)
+        private Bitmap? CreateBitmapFromSlice(RTCT ctVolume)
         {
             if (ctVolume?.PixelData == null || ctVolume.Width <= 0 || ctVolume.Height <= 0 || ctVolume.Depth <= 0)
             {
@@ -585,22 +562,22 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
-        /// 환자 정보, 선택된 해부학적 모델 및 참조 계획 설정
+        /// Initialize with patient information, selected structure and plan
         /// </summary>
-        /// <param name="patient">환자 정보</param>
-        /// <param name="anatomyModel">선택된 해부학적 모델</param>
-        /// <param name="referencePlan">선택된 참조 계획</param>
-        public async Task InitializeAsync(Patient patient, AnatomyModel anatomyModel = null, ReferencePlan referencePlan = null)
+        /// <param name="patient">Patient information</param>
+        /// <param name="structure">Selected RT structure</param>
+        /// <param name="plan">Selected RT plan</param>
+        public async Task InitializeAsync(Patient patient, RTStructure structure = null, RTPlan plan = null)
         {
             // Log the full details of what we received
             LogHelper.Log("RegisterViewModel.InitializeAsync: Received data:");
             LogHelper.Log($"Patient: {patient?.PatientId ?? "null"} - {patient?.FirstName ?? ""} {patient?.LastName ?? ""}");
-            LogHelper.Log($"AnatomyModel: {anatomyModel?.Name ?? "null"}");
-            LogHelper.Log($"ReferencePlan: {referencePlan?.Name ?? "null"}");
+            LogHelper.Log($"RTStructure: {structure?.Name ?? "null"}");
+            LogHelper.Log($"RTPlan: {plan?.Name ?? "null"}");
 
             Patient = patient;
-            SelectedAnatomyModel = anatomyModel;
-            SelectedReferencePlan = referencePlan;
+            RTStructure = structure;
+            RTPlan = plan;
 
             // If PatientId is set (from the Patient object), load DICOM files
             if (!string.IsNullOrEmpty(PatientId))

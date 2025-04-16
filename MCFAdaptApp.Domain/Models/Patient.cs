@@ -54,8 +54,18 @@ namespace MCFAdaptApp.Domain.Models
         public string DisplayName => $"{LastName}, {FirstName}";
 
         /// <summary>
-        /// Collection of anatomical models for this patient
+        /// Collection of RT structure sets for this patient
         /// </summary>
-        public ObservableCollection<AnatomyModel> AnatomyModels { get; set; } = new ObservableCollection<AnatomyModel>();
+        public ObservableCollection<RTStructure> Structures { get; set; } = new ObservableCollection<RTStructure>();
+
+        /// <summary>
+        /// Collection of CT datasets for this patient
+        /// </summary>
+        public ObservableCollection<RTCT> CTDatasets { get; set; } = new ObservableCollection<RTCT>();
+
+        /// <summary>
+        /// Collection of treatment plans for this patient
+        /// </summary>
+        public ObservableCollection<RTPlan> Plans { get; set; } = new ObservableCollection<RTPlan>();
     }
 }

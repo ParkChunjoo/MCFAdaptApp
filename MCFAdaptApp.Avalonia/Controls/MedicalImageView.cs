@@ -19,8 +19,8 @@ namespace MCFAdaptApp.Avalonia.Controls
     public class MedicalImageView : UserControl
     {
         // Define dependency properties
-        public static readonly StyledProperty<ReferenceCT?> VolumeProperty =
-            AvaloniaProperty.Register<MedicalImageView, ReferenceCT?>(nameof(Volume));
+        public static readonly StyledProperty<RTCT?> VolumeProperty =
+            AvaloniaProperty.Register<MedicalImageView, RTCT?>(nameof(Volume));
 
         public static readonly StyledProperty<int> SliceIndexProperty =
             AvaloniaProperty.Register<MedicalImageView, int>(nameof(SliceIndex), -1);
@@ -41,7 +41,7 @@ namespace MCFAdaptApp.Avalonia.Controls
             AvaloniaProperty.Register<MedicalImageView, bool>(nameof(ShowGrid), true);
 
         // Properties
-        public ReferenceCT? Volume
+        public RTCT? Volume
         {
             get => GetValue(VolumeProperty);
             set => SetValue(VolumeProperty, value);
