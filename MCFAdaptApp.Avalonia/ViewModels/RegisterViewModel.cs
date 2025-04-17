@@ -35,6 +35,11 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         private Bitmap? _cbctCenterSliceBitmap;
         private Bitmap? _refCtCenterSliceBitmap;
 
+        // Synchronization and caching properties
+        private bool _syncViews = false;
+        private Dictionary<string, Bitmap> _imageCache = new Dictionary<string, Bitmap>();
+        private const int MAX_CACHED_IMAGES = 10;
+
         // Properties for GPU-accelerated image view
         private double _cbctWindowWidth = 2000;
         private double _cbctWindowCenter = 0;
@@ -210,6 +215,19 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         }
 
         /// <summary>
+        /// Whether to synchronize views between Reference CT and CBCT
+        /// </summary>
+        public bool SyncViews
+        {
+            get => _syncViews;
+            set
+            {
+                _syncViews = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
         /// Window width for CBCT image
         /// </summary>
         public double CbctWindowWidth
@@ -219,6 +237,12 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _cbctWindowWidth = value;
                 OnPropertyChanged();
+
+                // Synchronize with Reference CT if enabled
+                if (SyncViews)
+                {
+                    RefCtWindowWidth = value;
+                }
             }
         }
 
@@ -232,6 +256,12 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _cbctWindowCenter = value;
                 OnPropertyChanged();
+
+                // Synchronize with Reference CT if enabled
+                if (SyncViews)
+                {
+                    RefCtWindowCenter = value;
+                }
             }
         }
 
@@ -245,6 +275,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _refCtWindowWidth = value;
                 OnPropertyChanged();
+
+                // Synchronize with CBCT if enabled
+                if (SyncViews)
+                {
+                    _cbctWindowWidth = value; // Use field to avoid infinite recursion
+                    OnPropertyChanged(nameof(CbctWindowWidth));
+                }
             }
         }
 
@@ -258,6 +295,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _refCtWindowCenter = value;
                 OnPropertyChanged();
+
+                // Synchronize with CBCT if enabled
+                if (SyncViews)
+                {
+                    _cbctWindowCenter = value; // Use field to avoid infinite recursion
+                    OnPropertyChanged(nameof(CbctWindowCenter));
+                }
             }
         }
 
@@ -271,6 +315,12 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _cbctZoomFactor = value;
                 OnPropertyChanged();
+
+                // Synchronize with Reference CT if enabled
+                if (SyncViews)
+                {
+                    RefCtZoomFactor = value;
+                }
             }
         }
 
@@ -284,6 +334,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _refCtZoomFactor = value;
                 OnPropertyChanged();
+
+                // Synchronize with CBCT if enabled
+                if (SyncViews)
+                {
+                    _cbctZoomFactor = value; // Use field to avoid infinite recursion
+                    OnPropertyChanged(nameof(CbctZoomFactor));
+                }
             }
         }
 
@@ -297,6 +354,12 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _cbctPanOffset = value;
                 OnPropertyChanged();
+
+                // Synchronize with Reference CT if enabled
+                if (SyncViews)
+                {
+                    RefCtPanOffset = value;
+                }
             }
         }
 
@@ -310,6 +373,13 @@ namespace MCFAdaptApp.Avalonia.ViewModels
             {
                 _refCtPanOffset = value;
                 OnPropertyChanged();
+
+                // Synchronize with CBCT if enabled
+                if (SyncViews)
+                {
+                    _cbctPanOffset = value; // Use field to avoid infinite recursion
+                    OnPropertyChanged(nameof(CbctPanOffset));
+                }
             }
         }
 
@@ -346,6 +416,21 @@ namespace MCFAdaptApp.Avalonia.ViewModels
         public ICommand LoadDicomFilesCommand { get; private set; }
 
         /// <summary>
+        /// Command to apply window presets (Bone, Lung, Soft Tissue, Brain)
+        /// </summary>
+        public RelayCommand<string> ApplyWindowPresetCommand { get; private set; }
+
+        /// <summary>
+        /// Command to synchronize all view parameters between Reference CT and CBCT
+        /// </summary>
+        public RelayCommand<string> SynchronizeAllViewParametersCommand { get; private set; }
+
+        /// <summary>
+        /// Command to toggle measurement mode
+        /// </summary>
+        public RelayCommand ToggleMeasurementModeCommand { get; set; }
+
+        /// <summary>
         /// 생성자
         /// </summary>
         /// <param name="dicomService">DICOM 서비스</param>
@@ -355,6 +440,81 @@ namespace MCFAdaptApp.Avalonia.ViewModels
 
             // 명령 초기화
             LoadDicomFilesCommand = new AsyncRelayCommand(LoadDicomFilesAsync, () => !IsLoading);
+            ApplyWindowPresetCommand = new RelayCommand<string>(ApplyWindowPreset);
+            SynchronizeAllViewParametersCommand = new RelayCommand<string>(param =>
+                SynchronizeAllViewParameters(param == "true" || string.IsNullOrEmpty(param)));
+            ToggleMeasurementModeCommand = new RelayCommand(obj => ToggleMeasurementMode());
+        }
+
+        /// <summary>
+        /// Apply a window preset (Bone, Lung, Soft Tissue, Brain)
+        /// </summary>
+        private void ApplyWindowPreset(string preset)
+        {
+            switch (preset)
+            {
+                case "Bone":
+                    RefCtWindowWidth = 2000;
+                    RefCtWindowCenter = 500;
+                    break;
+                case "Lung":
+                    RefCtWindowWidth = 1500;
+                    RefCtWindowCenter = -600;
+                    break;
+                case "SoftTissue":
+                    RefCtWindowWidth = 400;
+                    RefCtWindowCenter = 40;
+                    break;
+                case "Brain":
+                    RefCtWindowWidth = 80;
+                    RefCtWindowCenter = 40;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Synchronize all view parameters between Reference CT and CBCT
+        /// </summary>
+        /// <param name="fromRefToCbct">If true, copy Ref CT parameters to CBCT; otherwise, copy CBCT parameters to Ref CT</param>
+        public void SynchronizeAllViewParameters(bool fromRefToCbct = true)
+        {
+            if (fromRefToCbct)
+            {
+                // Copy Ref CT parameters to CBCT
+                _cbctWindowWidth = RefCtWindowWidth;
+                _cbctWindowCenter = RefCtWindowCenter;
+                _cbctZoomFactor = RefCtZoomFactor;
+                _cbctPanOffset = RefCtPanOffset;
+
+                // Notify property changes
+                OnPropertyChanged(nameof(CbctWindowWidth));
+                OnPropertyChanged(nameof(CbctWindowCenter));
+                OnPropertyChanged(nameof(CbctZoomFactor));
+                OnPropertyChanged(nameof(CbctPanOffset));
+            }
+            else
+            {
+                // Copy CBCT parameters to Ref CT
+                _refCtWindowWidth = CbctWindowWidth;
+                _refCtWindowCenter = CbctWindowCenter;
+                _refCtZoomFactor = CbctZoomFactor;
+                _refCtPanOffset = CbctPanOffset;
+
+                // Notify property changes
+                OnPropertyChanged(nameof(RefCtWindowWidth));
+                OnPropertyChanged(nameof(RefCtWindowCenter));
+                OnPropertyChanged(nameof(RefCtZoomFactor));
+                OnPropertyChanged(nameof(RefCtPanOffset));
+            }
+        }
+
+        /// <summary>
+        /// Toggle measurement mode on/off
+        /// </summary>
+        private void ToggleMeasurementMode()
+        {
+            // This will be handled in the view by binding to a property in the MedicalImageView control
+            // We'll implement this in the view code-behind
         }
 
         /// <summary>
@@ -475,6 +635,22 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     displaySliceIndex = ctVolume.Depth / 2; // Fallback to center if index is invalid
                 }
 
+                // Check cache first
+                string cacheKey = $"{ctVolume.Id}_{displaySliceIndex}";
+                if (_imageCache.TryGetValue(cacheKey, out var cachedBitmap))
+                {
+                    LogHelper.Log($"Using cached bitmap for {ctVolume.Name}, slice {displaySliceIndex}");
+                    return cachedBitmap;
+                }
+
+                // If cache is full, remove oldest entry
+                if (_imageCache.Count >= MAX_CACHED_IMAGES)
+                {
+                    var oldestKey = _imageCache.Keys.First();
+                    _imageCache[oldestKey].Dispose();
+                    _imageCache.Remove(oldestKey);
+                }
+
                 int sliceSize = width * height;
                 int startOffset = displaySliceIndex * sliceSize;
 
@@ -485,7 +661,10 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                 // Find min/max pixel values for windowing (simple approach)
                 short minPixel = short.MaxValue;
                 short maxPixel = short.MinValue;
-                for (int i = 0; i < slicePixels.Length; i++)
+
+                // Use sampling for large slices to improve performance
+                int samplingRate = sliceSize > 1000000 ? 10 : 1;
+                for (int i = 0; i < slicePixels.Length; i += samplingRate)
                 {
                     if (slicePixels[i] < minPixel) minPixel = slicePixels[i];
                     if (slicePixels[i] > maxPixel) maxPixel = slicePixels[i];
@@ -509,20 +688,31 @@ namespace MCFAdaptApp.Avalonia.ViewModels
                     unsafe // Use unsafe context for direct pointer access to framebuffer
                     {
                         uint* pixels = (uint*)frameBuffer.Address;
-                        for (int i = 0; i < sliceSize; i++)
+
+                        // Process in chunks for better cache utilization
+                        const int chunkSize = 1024;
+                        for (int chunk = 0; chunk < sliceSize; chunk += chunkSize)
                         {
-                            // Get the 16-bit pixel value
-                            short rawValue = slicePixels[i];
+                            int end = Math.Min(chunk + chunkSize, sliceSize);
+                            for (int i = chunk; i < end; i++)
+                            {
+                                // Get the 16-bit pixel value
+                                short rawValue = slicePixels[i];
 
-                            // Apply windowing to map to 0-255 grayscale
-                            double scaledValue = (rawValue - windowMin) / windowWidth;
-                            byte grayValue = (byte)Math.Clamp(scaledValue * 255.0, 0, 255);
+                                // Apply windowing to map to 0-255 grayscale
+                                double scaledValue = (rawValue - windowMin) / windowWidth;
+                                byte grayValue = (byte)Math.Clamp(scaledValue * 255.0, 0, 255);
 
-                            // Set Bgra8888 pixel (Alpha = 255, R=G=B=grayValue)
-                            pixels[i] = (uint)((255 << 24) | (grayValue << 16) | (grayValue << 8) | grayValue);
+                                // Set Bgra8888 pixel (Alpha = 255, R=G=B=grayValue)
+                                pixels[i] = (uint)((255 << 24) | (grayValue << 16) | (grayValue << 8) | grayValue);
+                            }
                         }
                     }
                 }
+
+                // Add to cache
+                _imageCache[cacheKey] = bitmap;
+                LogHelper.Log($"Added bitmap to cache for {ctVolume.Name}, slice {displaySliceIndex}");
 
                 return bitmap;
             }
